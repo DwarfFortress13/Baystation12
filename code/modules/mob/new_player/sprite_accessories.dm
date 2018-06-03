@@ -59,6 +59,7 @@
 		name = "Short Hair"	  // try to capatilize the names please~
 		icon_state = "hair_a" // you do not need to define _s or _l sub-states, game automatically does this for you
 		veryshort = 1
+		species_allowed = list(SPECIES_HUMAN,SPECIES_UNATHI,"Dwarf")
 
 	twintail
 		name = "Twintail"
@@ -708,6 +709,7 @@
 	dwarf
 		name = "Dwarf Beard"
 		icon_state = "facial_dwarf"
+		species_allowed = list(SPECIES_HUMAN,"Dwarf")
 
 	threeOclock
 		name = "3 O'clock Shadow"

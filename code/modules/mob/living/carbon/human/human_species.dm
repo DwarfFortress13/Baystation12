@@ -57,3 +57,6 @@
 
 /mob/living/carbon/human/stok/New(var/new_loc)
 	..(new_loc, "Stok")
+
+/mob/living/carbon/human/dwarf/New(var/new_loc)
+	..(new_loc, "Dwarf")

@@ -69,8 +69,8 @@
 
 /world
 	mob = /mob/new_player
-	turf = /turf/space
-	area = /area/space
+	turf = /turf/simulated/floor/grass
+	area = /area/outdoors
 	view = "15x15"
 	cache_lifespan = 0	//stops player uploaded stuff from being kept in the rsc past the current session
 	icon_size = WORLD_ICON_SIZE
