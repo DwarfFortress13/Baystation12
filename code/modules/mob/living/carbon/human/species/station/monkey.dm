@@ -20,7 +20,7 @@
 	death_message = "lets out a faint chimper as it collapses and stops moving..."
 	tail = "chimptail"
 
-	unarmed_types = list(/datum/unarmed_attack/bite, /datum/unarmed_attack/claws)
+	unarmed_types = list(/datum/unarmed_attack/bite, /datum/unarmed_attack/claws, /datum/unarmed_attack/punch)
 	inherent_verbs = list(/mob/living/proc/ventcrawl)
 	hud_type = /datum/hud_data/monkey
 	meat_type = /obj/item/weapon/reagent_containers/food/snacks/meat/monkey
@@ -36,7 +36,7 @@
 	swap_flags = MONKEY|SLIME|SIMPLE_ANIMAL
 	push_flags = MONKEY|SLIME|SIMPLE_ANIMAL|ALIEN
 
-	pass_flags = PASSTABLE
+	pass_flags = PASS_FLAG_TABLE
 	holder_type = /obj/item/weapon/holder
 	has_limbs = list(
 		BP_CHEST =  list("path" = /obj/item/organ/external/chest),
@@ -89,7 +89,7 @@
 
 	greater_form = "Tajaran"
 	default_language = "Farwa"
-	flesh_color = "#AFA59E"
+	flesh_color = "#afa59e"
 	base_color = "#333333"
 	tail = "farwatail"
 
@@ -103,8 +103,8 @@
 
 	greater_form = SPECIES_SKRELL
 	default_language = "Neaera"
-	flesh_color = "#8CD7A3"
-	blood_color = "#1D2CBF"
+	flesh_color = "#8cd7a3"
+	blood_color = "#1d2cbf"
 	reagent_tag = IS_SKRELL
 	tail = null
 
@@ -119,6 +119,6 @@
 	tail = "stoktail"
 	greater_form = SPECIES_UNATHI
 	default_language = "Stok"
-	flesh_color = "#34AF10"
+	flesh_color = "#34af10"
 	base_color = "#066000"
 	reagent_tag = IS_UNATHI

@@ -211,11 +211,11 @@
 
 		if("mov_intent")
 			switch(usr.m_intent)
-				if("run")
-					usr.m_intent = "walk"
+				if(M_RUN)
+					usr.m_intent = M_WALK
 					usr.hud_used.move_intent.icon_state = "walking"
-				if("walk")
-					usr.m_intent = "run"
+				if(M_WALK)
+					usr.m_intent = M_RUN
 					usr.hud_used.move_intent.icon_state = "running"
 
 		if("Reset Machine")
@@ -232,9 +232,9 @@
 					else
 
 						var/no_mask
-						if(!(C.wear_mask && C.wear_mask.item_flags & AIRTIGHT))
+						if(!(C.wear_mask && C.wear_mask.item_flags & ITEM_FLAG_AIRTIGHT))
 							var/mob/living/carbon/human/H = C
-							if(!(H.head && H.head.item_flags & AIRTIGHT))
+							if(!(H.head && H.head.item_flags & ITEM_FLAG_AIRTIGHT))
 								no_mask = 1
 
 						if(no_mask)

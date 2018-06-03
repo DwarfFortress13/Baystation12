@@ -2,7 +2,7 @@
 	name = "baby slime"
 	icon = 'icons/mob/slimes.dmi'
 	icon_state = "grey baby slime"
-	pass_flags = PASSTABLE
+	pass_flags = PASS_FLAG_TABLE
 	speak_emote = list("chirps")
 
 	maxHealth = 150
@@ -87,10 +87,10 @@
 		tally += (283.222 - bodytemperature) / 10 * 1.75
 
 	if(reagents)
-		if(reagents.has_reagent("hyperzine")) // Hyperzine slows slimes down
+		if(reagents.has_reagent(/datum/reagent/hyperzine)) // Hyperzine slows slimes down
 			tally *= 2
 
-		if(reagents.has_reagent("frostoil")) // Frostoil also makes them move VEEERRYYYYY slow
+		if(reagents.has_reagent(/datum/reagent/frostoil)) // Frostoil also makes them move VEEERRYYYYY slow
 			tally *= 5
 
 	if(health <= 0) // if damaged, the slime moves twice as slow
@@ -279,7 +279,7 @@
 /mob/living/carbon/slime/attackby(var/obj/item/W, var/mob/user)
 	if(W.force > 0)
 		attacked += 10
-		if(prob(25))
+		if(!(stat) && prob(25)) //Only run this check if we're alive or otherwise motile, otherwise surgery will be agonizing for xenobiologists.
 			to_chat(user, "<span class='danger'>\The [W] passes right through \the [src]!</span>")
 			return
 
@@ -299,6 +299,9 @@
 	return
 
 /mob/living/carbon/slime/has_eyes()
+	return 0
+
+/mob/living/carbon/slime/check_has_mouth()
 	return 0
 
 /mob/living/carbon/slime/proc/gain_nutrition(var/amount)

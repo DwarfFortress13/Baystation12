@@ -64,7 +64,7 @@
 	return sanitize(replace_characters(input, list(">"=" ","<"=" ", "\""="'")), max_length, encode, trim, extra)
 
 //Filters out undesirable characters from names
-/proc/sanitizeName(var/input, var/max_length = MAX_NAME_LEN, var/allow_numbers = 0)
+/proc/sanitizeName(var/input, var/max_length = MAX_NAME_LEN, var/allow_numbers = 0, var/force_first_letter_uppercase = TRUE)
 	if(!input || length(input) > max_length)
 		return //Rejects the input if it is null or if it is longer then the max length allowed
 
@@ -83,8 +83,10 @@
 
 			// a  .. z
 			if(97 to 122)			//Lowercase Letters
-				if(last_char_group<2)		output += ascii2text(ascii_char-32)	//Force uppercase first character
-				else						output += ascii2text(ascii_char)
+				if(last_char_group<2 && force_first_letter_uppercase)
+					output += ascii2text(ascii_char-32)	//Force uppercase first character
+				else
+					output += ascii2text(ascii_char)
 				number_of_alphanumeric++
 				last_char_group = 4
 
@@ -126,6 +128,32 @@
 		if(cmptext(output,bad_name))	return	//(not case sensitive)
 
 	return output
+
+//Used to strip text of everything but letters and numbers, make letters lowercase, and turn spaces into .'s.
+//Make sure the text hasn't been encoded if using this.
+/proc/sanitize_for_email(text)
+	if(!text) return ""
+	var/list/dat = list()
+	var/last_was_space = 1
+	for(var/i=1, i<=length(text), i++)
+		var/ascii_char = text2ascii(text,i)
+		switch(ascii_char)
+			if(65 to 90)	//A-Z, make them lowercase
+				dat += ascii2text(ascii_char + 32)
+			if(97 to 122)	//a-z
+				dat += ascii2text(ascii_char)
+				last_was_space = 0
+			if(48 to 57)	//0-9
+				dat += ascii2text(ascii_char)
+				last_was_space = 0
+			if(32)			//space
+				if(last_was_space)
+					continue
+				dat += "."		//We turn these into ., but avoid repeats or . at start.
+				last_was_space = 1
+	if(dat[length(dat)] == ".")	//kill trailing .
+		dat.Cut(length(dat))
+	return jointext(dat, null)
 
 //Returns null if there is any bad text in the string
 /proc/reject_bad_text(var/text, var/max_length=512)
@@ -311,7 +339,7 @@ proc/TextPreview(var/string,var/len=40)
 //	to always create it and then throw it out.
 /var/icon/text_tag_icons = new('./icons/chattags.dmi')
 /proc/create_text_tag(var/tagname, var/tagdesc = tagname, var/client/C = null)
-	if(!(C && C.is_preference_enabled(/datum/client_preference/chat_tags)))
+	if(!(C && C.get_preference_value(/datum/client_preference/chat_tags) == GLOB.PREF_SHOW))
 		return tagdesc
 	return "<IMG src='\ref[text_tag_icons.icon]' class='text_tag' iconstate='[tagname]'" + (tagdesc ? " alt='[tagdesc]'" : "") + ">"
 
@@ -385,7 +413,42 @@ proc/TextPreview(var/string,var/len=40)
 	t = replacetext(t, "\[logo\]", "<img src = ntlogo.png>")
 	t = replacetext(t, "\[bluelogo\]", "<img src = bluentlogo.png>")
 	t = replacetext(t, "\[solcrest\]", "<img src = sollogo.png>")
+	t = replacetext(t, "\[terraseal\]", "<img src = terralogo.png>")
 	t = replacetext(t, "\[editorbr\]", "")
+	return t
+
+//Will kill most formatting; not recommended.
+/proc/html2pencode(t)
+	t = replacetext(t, "<BR>", "\[br\]")
+	t = replacetext(t, "<br>", "\[br\]")
+	t = replacetext(t, "<B>", "\[b\]")
+	t = replacetext(t, "</B>", "\[/b\]")
+	t = replacetext(t, "<I>", "\[i\]")
+	t = replacetext(t, "</I>", "\[/i\]")
+	t = replacetext(t, "<U>", "\[u\]")
+	t = replacetext(t, "</U>", "\[/u\]")
+	t = replacetext(t, "<center>", "\[center\]")
+	t = replacetext(t, "</center>", "\[/center\]")
+	t = replacetext(t, "<H1>", "\[h1\]")
+	t = replacetext(t, "</H1>", "\[/h1\]")
+	t = replacetext(t, "<H2>", "\[h2\]")
+	t = replacetext(t, "</H2>", "\[/h2\]")
+	t = replacetext(t, "<H3>", "\[h3\]")
+	t = replacetext(t, "</H3>", "\[/h3\]")
+	t = replacetext(t, "<li>", "\[*\]")
+	t = replacetext(t, "<HR>", "\[hr\]")
+	t = replacetext(t, "<ul>", "\[list\]")
+	t = replacetext(t, "</ul>", "\[/list\]")
+	t = replacetext(t, "<table>", "\[grid\]")
+	t = replacetext(t, "</table>", "\[/grid\]")
+	t = replacetext(t, "<tr>", "\[row\]")
+	t = replacetext(t, "<td>", "\[cell\]")
+	t = replacetext(t, "<img src = ntlogo.png>", "\[logo\]")
+	t = replacetext(t, "<img src = bluentlogo.png>", "\[bluelogo\]")
+	t = replacetext(t, "<img src = sollogo.png>", "\[solcrest\]")
+	t = replacetext(t, "<img src = terralogo.png>", "\[terraseal\]")
+	t = replacetext(t, "<span class=\"paper_field\"></span>", "\[field\]")
+	t = strip_html_properly(t)
 	return t
 
 // Random password generator
@@ -396,3 +459,67 @@ proc/TextPreview(var/string,var/len=40)
 	newKey += pick("diamond", "beer", "mushroom", "assistant", "clown", "captain", "twinkie", "security", "nuke", "small", "big", "escape", "yellow", "gloves", "monkey", "engine", "nuclear", "ai")
 	newKey += pick("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
 	return newKey
+
+//Used for applying byonds text macros to strings that are loaded at runtime
+/proc/apply_text_macros(string)
+	var/next_backslash = findtext(string, "\\")
+	if(!next_backslash)
+		return string
+
+	var/leng = length(string)
+
+	var/next_space = findtext(string, " ", next_backslash + 1)
+	if(!next_space)
+		next_space = leng - next_backslash
+
+	if(!next_space)	//trailing bs
+		return string
+
+	var/base = next_backslash == 1 ? "" : copytext(string, 1, next_backslash)
+	var/macro = lowertext(copytext(string, next_backslash + 1, next_space))
+	var/rest = next_backslash > leng ? "" : copytext(string, next_space + 1)
+
+	//See http://www.byond.com/docs/ref/info.html#/DM/text/macros
+	switch(macro)
+		//prefixes/agnostic
+		if("the")
+			rest = text("\the []", rest)
+		if("a")
+			rest = text("\a []", rest)
+		if("an")
+			rest = text("\an []", rest)
+		if("proper")
+			rest = text("\proper []", rest)
+		if("improper")
+			rest = text("\improper []", rest)
+		if("roman")
+			rest = text("\roman []", rest)
+		//postfixes
+		if("th")
+			base = text("[]\th", rest)
+		if("s")
+			base = text("[]\s", rest)
+		if("he")
+			base = text("[]\he", rest)
+		if("she")
+			base = text("[]\she", rest)
+		if("his")
+			base = text("[]\his", rest)
+		if("himself")
+			base = text("[]\himself", rest)
+		if("herself")
+			base = text("[]\herself", rest)
+		if("hers")
+			base = text("[]\hers", rest)
+
+	. = base
+	if(rest)
+		. += .(rest)
+
+/proc/deep_string_equals(var/A, var/B)
+	if (lentext(A) != lentext(B))
+		return FALSE
+	for (var/i = 1 to lentext(A))
+		if (text2ascii(A, i) != text2ascii(B, i))
+			return FALSE
+	return TRUE

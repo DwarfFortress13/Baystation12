@@ -21,19 +21,18 @@
 	metal = ismetal
 	playsound(src, 'sound/effects/bubbles2.ogg', 80, 1, -3)
 	spawn(3 + metal * 3)
-		process()
+		Process()
 		checkReagents()
-	spawn(120)
-		GLOB.processing_objects.Remove(src)
-		sleep(30)
-		if(metal)
-			var/obj/structure/foamedmetal/M = new(src.loc)
-			M.metal = metal
-			M.updateicon()
-		flick("[icon_state]-disolve", src)
-		sleep(5)
-		qdel(src)
-	return
+	addtimer(CALLBACK(src, .proc/remove_foam), 12 SECONDS)
+
+/obj/effect/effect/foam/proc/remove_foam()
+	STOP_PROCESSING(SSobj, src)
+	if(metal)
+		var/obj/structure/foamedmetal/M = new(src.loc)
+		M.metal = metal
+		M.update_icon()
+	flick("[icon_state]-disolve", src)
+	QDEL_IN(src, 5)
 
 /obj/effect/effect/foam/proc/checkReagents() // transfer any reagents to the floor
 	if(!metal && reagents)
@@ -42,7 +41,7 @@
 		for(var/obj/O in T)
 			reagents.touch_obj(O)
 
-/obj/effect/effect/foam/process()
+/obj/effect/effect/foam/Process()
 	if(--amount < 0)
 		return
 
@@ -64,7 +63,7 @@
 			F.create_reagents(10)
 			if(reagents)
 				for(var/datum/reagent/R in reagents.reagent_list)
-					F.reagents.add_reagent(R.id, 1, safety = 1) //added safety check since reagents in the foam have already had a chance to react
+					F.reagents.add_reagent(R.type, 1, safety = 1) //added safety check since reagents in the foam have already had a chance to react
 
 /obj/effect/effect/foam/fire_act(datum/gas_mixture/air, exposed_temperature, exposed_volume) // foam disolves when heated, except metal foams
 	if(!metal && prob(max(0, exposed_temperature - 475)))
@@ -99,7 +98,7 @@
 
 	if(carry && !metal)
 		for(var/datum/reagent/R in carry.reagent_list)
-			carried_reagents += R.id
+			carried_reagents += R.type
 
 /datum/effect/effect/system/foam_spread/start()
 	spawn(0)
@@ -118,7 +117,7 @@
 				for(var/id in carried_reagents)
 					F.reagents.add_reagent(id, 1, safety = 1) //makes a safety call because all reagents should have already reacted anyway
 			else
-				F.reagents.add_reagent("water", 1, safety = 1)
+				F.reagents.add_reagent(/datum/reagent/water, 1, safety = 1)
 
 // wall formed by metal foams, dense and opaque, but easy to break
 
@@ -141,7 +140,7 @@
 	update_nearby_tiles(1)
 	..()
 
-/obj/structure/foamedmetal/proc/updateicon()
+/obj/structure/foamedmetal/update_icon()
 	if(metal == 1)
 		icon_state = "metalfoam"
 	else

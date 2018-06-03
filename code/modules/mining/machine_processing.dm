@@ -105,7 +105,7 @@
 	icon_state = "furnace"
 	density = 1
 	anchored = 1
-	light_range = 3
+	light_outer_range = 3
 	var/obj/machinery/mineral/input = null
 	var/obj/machinery/mineral/output = null
 	var/obj/machinery/mineral/console = null
@@ -140,7 +140,7 @@
 		return
 	return
 
-/obj/machinery/mineral/processing_unit/process()
+/obj/machinery/mineral/processing_unit/Process()
 
 	if (!src.output || !src.input) return
 

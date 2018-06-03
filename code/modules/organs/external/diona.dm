@@ -33,6 +33,7 @@
 	w_class = ITEM_SIZE_HUGE
 	body_part = UPPER_TORSO
 	vital = 1
+	can_heal_overkill = 1
 	cannot_amputate = 1
 	parent_organ = null
 	gendered_icon = 1
@@ -86,7 +87,7 @@
 /obj/item/organ/external/diona/leg/stun_act(var/stun_amount, var/agony_amount)
 	if(!owner || agony_amount < 5)
 		return
-	if(prob(agony_amount*2))
+	if(prob(min(agony_amount*2,50)))
 		to_chat(owner, "<span class='warning'>Your [src] buckles from the shock!</span>")
 		owner.Weaken(5)
 
@@ -112,7 +113,7 @@
 /obj/item/organ/external/diona/foot/stun_act(var/stun_amount, var/agony_amount)
 	if(!owner || agony_amount < 5)
 		return
-	if(prob(agony_amount*4))
+	if(prob(min(agony_amount*4,50)))
 		to_chat(owner, "<span class='warning'>You lose your footing as your [src] spasms!</span>")
 		owner.Weaken(5)
 
@@ -193,8 +194,8 @@
 	if(prob(50) && !skip_nymph && spawn_diona_nymph(get_turf(src)))
 		qdel(src)
 
-/obj/item/organ/internal/diona/process()
-	return
+/obj/item/organ/internal/diona/Process()
+	return PROCESS_KILL
 
 /obj/item/organ/internal/diona/strata
 	name = "neural strata"
@@ -243,6 +244,18 @@
 	organ_tag = "response node"
 	icon = 'icons/mob/alien.dmi'
 	icon_state = "claw"
+
+/obj/item/organ/internal/diona/node/Process()
+	..()
+	if(is_broken() || !owner)
+		return
+	var/light_amount = 0 //how much light there is in the place, affects receiving nutrition and healing
+	if(isturf(owner.loc)) //else, there's considered to be no light
+		var/turf/T = owner.loc
+		light_amount = T.get_lumcount() * 10
+	owner.nutrition   += light_amount
+	owner.shock_stage -= light_amount
+	owner.nutrition    = Clamp(owner.nutrition, 0, 550)
 
 /obj/item/organ/internal/diona/node/removed(var/mob/user)
 	return ..(user, 1)

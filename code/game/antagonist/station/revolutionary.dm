@@ -1,4 +1,4 @@
-var/datum/antagonist/revolutionary/revs
+GLOBAL_DATUM_INIT(revs, /datum/antagonist/revolutionary, new)
 
 /datum/antagonist/revolutionary
 	id = MODE_REVOLUTIONARY
@@ -33,16 +33,12 @@ var/datum/antagonist/revolutionary/revs
 	protected_jobs = list(/datum/job/officer, /datum/job/warden, /datum/job/detective)
 
 
-/datum/antagonist/revolutionary/New()
-	..()
-	revs = src
-
 /datum/antagonist/revolutionary/create_global_objectives()
 	if(!..())
 		return
 	global_objectives = list()
-	for(var/mob/living/carbon/human/player in GLOB.mob_list)
-		if(!player.mind || player.stat==2 || !(player.mind.assigned_role in command_positions))
+	for(var/mob/living/carbon/human/player in SSmobs.mob_list)
+		if(!player.mind || player.stat==2 || !(player.mind.assigned_role in GLOB.command_positions))
 			continue
 		var/datum/objective/rev/rev_obj = new
 		rev_obj.target = player.mind

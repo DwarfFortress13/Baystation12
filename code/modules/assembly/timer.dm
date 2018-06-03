@@ -27,10 +27,10 @@
 /obj/item/device/assembly/timer/toggle_secure()
 	secured = !secured
 	if(secured)
-		GLOB.processing_objects.Add(src)
+		START_PROCESSING(SSobj, src)
 	else
 		timing = 0
-		GLOB.processing_objects.Remove(src)
+		STOP_PROCESSING(SSobj, src)
 	update_icon()
 	return secured
 
@@ -46,9 +46,10 @@
 	return
 
 
-/obj/item/device/assembly/timer/process()
+/obj/item/device/assembly/timer/Process()
 	if(timing && (time > 0))
 		time--
+		playsound(loc, 'sound/items/timer.ogg', 50)
 	if(timing && time <= 0)
 		timing = 0
 		timer_end()

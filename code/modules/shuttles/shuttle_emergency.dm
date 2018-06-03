@@ -126,7 +126,8 @@
 	if (authorized.len >= req_authorizations)
 		return 0 //don't need any more
 
-	if (!evacuation_controller.emergency_evacuation && security_level < SEC_LEVEL_RED)
+	var/decl/security_state/security_state = decls_repository.get_decl(GLOB.using_map.security_state)
+	if (!evacuation_controller.emergency_evacuation && security_state.current_security_level_is_lower_than(security_state.high_security_level))
 		src.visible_message("\The [src] buzzes. It does not appear to be accepting any commands.")
 		return 0
 
@@ -241,17 +242,16 @@
 		ui.open()
 		ui.set_auto_update(1)
 
-/obj/machinery/computer/shuttle_control/emergency/Topic(href, href_list)
-	if(..())
-		return 1
-
+/obj/machinery/computer/shuttle_control/emergency/OnTopic(user, href_list)
 	if(href_list["removeid"])
 		var/dna_hash = href_list["removeid"]
 		authorized -= dna_hash
+		. = TOPIC_REFRESH
 
-	if(!emagged && href_list["scanid"])
+	else if(!emagged && href_list["scanid"])
 		//They selected an empty entry. Try to scan their id.
-		if (ishuman(usr))
-			var/mob/living/carbon/human/H = usr
+		var/mob/living/carbon/human/H = user
+		if (istype(H))
 			if (!read_authorization(H.get_active_hand()))	//try to read what's in their hand first
 				read_authorization(H.wear_id)
+				. = TOPIC_REFRESH

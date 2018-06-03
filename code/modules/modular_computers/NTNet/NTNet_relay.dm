@@ -35,7 +35,7 @@
 	else
 		icon_state = "bus_off"
 
-/obj/machinery/ntnet_relay/process()
+/obj/machinery/ntnet_relay/Process()
 	if(operable())
 		use_power = 2
 	else
@@ -81,10 +81,16 @@
 		dos_failure = 0
 		update_icon()
 		ntnet_global.add_log("Quantum relay manually restarted from overload recovery mode to normal operation mode.")
+		return 1
 	else if(href_list["toggle"])
 		enabled = !enabled
 		ntnet_global.add_log("Quantum relay manually [enabled ? "enabled" : "disabled"].")
 		update_icon()
+		return 1
+	else if(href_list["purge"])
+		ntnet_global.banned_nids.Cut()
+		ntnet_global.add_log("Manual override: Network blacklist cleared.")
+		return 1
 
 /obj/machinery/ntnet_relay/New()
 	uid = gl_uid
@@ -110,12 +116,12 @@
 	..()
 
 /obj/machinery/ntnet_relay/attackby(var/obj/item/weapon/W as obj, var/mob/user as mob)
-	if(istype(W, /obj/item/weapon/screwdriver))
+	if(isScrewdriver(W))
 		playsound(src.loc, 'sound/items/Screwdriver.ogg', 50, 1)
 		panel_open = !panel_open
 		to_chat(user, "You [panel_open ? "open" : "close"] the maintenance hatch")
 		return
-	if(istype(W, /obj/item/weapon/crowbar))
+	if(isCrowbar(W))
 		if(!panel_open)
 			to_chat(user, "Open the maintenance panel first.")
 			return

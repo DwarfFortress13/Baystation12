@@ -123,6 +123,13 @@
 		qdel(src)
 		return
 
+	if(config.player_limit != 0)
+		if((GLOB.clients.len >= config.player_limit) && !(ckey in admin_datums))
+			alert(src,"This server is currently full and not accepting new connections.","Server Full","OK")
+			log_admin("[ckey] tried to join and was turned away due to the server being full (player_limit=[config.player_limit])")
+			qdel(src)
+			return
+
 	// Change the way they should download resources.
 	if(config.resource_urls && config.resource_urls.len)
 		src.preload_rsc = pick(config.resource_urls)
@@ -152,6 +159,8 @@
 
 	. = ..()	//calls mob.Login()
 	prefs.sanitize_preferences()
+
+	GLOB.using_map.map_info(src)
 
 	if(custom_event_msg && custom_event_msg != "")
 		to_chat(src, "<h1 class='alert'>Custom Event</h1>")
@@ -196,6 +205,8 @@
 	//////////////
 /client/Del()
 	ticket_panels -= src
+	if(src && watched_variables_window)
+		STOP_PROCESSING(SSprocessing, watched_variables_window)
 	if(holder)
 		holder.owner = null
 		GLOB.admins -= src
@@ -319,6 +330,8 @@
 // So we slow this down a little.
 // See: http://www.byond.com/docs/ref/info.html#/client/proc/Stat
 /client/Stat()
+	if(!usr)
+		return
 	// Add always-visible stat panel calls here, to define a consistent display order.
 	statpanel("Status")
 
@@ -336,6 +349,7 @@
 		'html/images/ntlogo.png',
 		'html/images/bluentlogo.png',
 		'html/images/sollogo.png',
+		'html/images/terralogo.png',
 		'html/images/talisman.png'
 		)
 

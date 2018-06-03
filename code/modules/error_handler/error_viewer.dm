@@ -47,7 +47,7 @@ GLOBAL_DATUM(error_cache, /datum/error_viewer/error_cache)
 		border: solid 1px #202020;
 		font-family: "Courier New";
 		padding-left: 10px;
-		color: #CCCCCC;
+		color: #cccccc;
 	}
 	.runtime_line
 	{
@@ -111,7 +111,7 @@ GLOBAL_DATUM(error_cache, /datum/error_viewer/error_cache)
 	if (!istype(e))
 		return // Abnormal exception, don't even bother
 
-	var/erroruid = "[e.file][e.line]"
+	var/erroruid = "[e.file],[e.line]"
 	var/datum/error_viewer/error_source/error_source = error_sources[erroruid]
 	if (!error_source)
 		error_source = new(e)

@@ -7,11 +7,12 @@
 
 	stop_move = 1
 	reverse_facing = 1
-	can_absorb = 0
+	can_absorb = 1
 	shield_assailant = 0
 	point_blank_mult = 1
 	same_tile = 1
 	force_danger = 1
+	restrains = 1
 
 	downgrade_on_action = 1
 	downgrade_on_move = 1
@@ -29,7 +30,6 @@
 	if(affecting.lying)
 		affecting.Weaken(4)
 
-	affecting.Stun(3)
 	affecting.adjustOxyLoss(1)
 
 	affecting.apply_effect(STUTTER, 5) //It will hamper your voice, being choked and all.

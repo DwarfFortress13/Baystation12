@@ -80,7 +80,7 @@
 
 /decl/vv_set_handler/virtual_ability_handler/handle_set_var(var/mob/observer/virtual/virtual, variable, var_value, client)
 	..()
-	virtual.updateicon()
+	virtual.update_icon()
 
 /decl/vv_set_handler/mob_see_invisible_handler
 	handled_type = /mob
@@ -105,3 +105,30 @@
 /decl/vv_set_handler/icon_state_handler
 	handled_type = /atom
 	handled_vars = list("icon_state" = /atom/proc/set_icon_state)
+
+/decl/vv_set_handler/invisibility_handler
+	handled_type = /atom
+	handled_vars = list("invisibility" = /atom/proc/set_invisibility)
+	predicates = list(/proc/is_num_predicate)
+
+/decl/vv_set_handler/name_handler
+	handled_type = /atom
+	handled_vars = list("name" = /atom/proc/SetName)
+	predicates = list(/proc/is_text_predicate)
+
+/decl/vv_set_handler/light_handler
+	handled_type = /atom
+	handled_vars = list("light_max_bright","light_inner_range","light_outer_range","light_falloff_curve")
+
+/decl/vv_set_handler/light_handler/handle_set_var(var/atom/A, variable, var_value, client)
+	var_value = text2num(var_value)
+	if(!is_num_predicate(var_value, client))
+		return
+	// More sanity checks
+
+	var/new_max = variable == "light_max_bright" ? var_value : A.light_max_bright
+	var/new_inner = variable == "light_inner_range" ? var_value : A.light_inner_range
+	var/new_outer = variable == "light_outer_range" ? var_value : A.light_outer_range
+	var/new_falloff = variable == "light_falloff_curve" ? var_value : A.light_falloff_curve
+
+	A.set_light(new_max, new_inner, new_outer, new_falloff)

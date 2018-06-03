@@ -17,6 +17,12 @@
 	var/sound_takeoff = 'sound/effects/shuttle_takeoff.ogg'
 	var/sound_landing = 'sound/effects/shuttle_landing.ogg'
 
+	var/knockdown = 1 //whether shuttle downs non-buckled people when it moves
+
+	var/defer_initialisation = FALSE //this shuttle will/won't be initialised by something after roundstart
+	var/logging_home_tag   //Whether in-game logs will be generated whenever the shuttle leaves/returns to the landmark with this landmark_tag.
+	var/logging_access     //Controls who has write access to log-related stuff; should correlate with pilot access.
+
 /datum/shuttle/New(_name, var/obj/effect/shuttle_landmark/initial_location)
 	..()
 	if(_name)
@@ -42,6 +48,8 @@
 	if(src.name in shuttle_controller.shuttles)
 		CRASH("A shuttle with the name '[name]' is already defined.")
 	shuttle_controller.shuttles[src.name] = src
+	if(logging_home_tag)
+		new /datum/shuttle_log(src)
 	if(flags & SHUTTLE_FLAGS_PROCESS)
 		shuttle_controller.process_shuttles += src
 	if(flags & SHUTTLE_FLAGS_SUPPLY)
@@ -54,6 +62,7 @@
 
 	shuttle_controller.shuttles -= src.name
 	shuttle_controller.process_shuttles -= src
+	shuttle_controller.shuttle_logs -= src
 	if(supply_controller.shuttle == src)
 		supply_controller.shuttle = null
 
@@ -69,6 +78,12 @@
 		if (moving_status == SHUTTLE_IDLE)
 			return FALSE	//someone cancelled the launch
 
+		if(!fuel_check()) //fuel error (probably out of fuel) occured, so cancel the launch
+			var/datum/shuttle/autodock/S = src
+			if(istype(S))
+				S.cancel_launch(null)
+			return
+
 		moving_status = SHUTTLE_INTRANSIT //shouldn't matter but just to be safe
 		attempt_move(destination)
 		moving_status = SHUTTLE_IDLE
@@ -82,8 +97,14 @@
 	if(sound_takeoff)
 		playsound(current_location, sound_takeoff, 100, 20, 0.2)
 	spawn(warmup_time*10)
-		if (moving_status == SHUTTLE_IDLE)
+		if(moving_status == SHUTTLE_IDLE)
 			return	//someone cancelled the launch
+
+		if(!fuel_check()) //fuel error (probably out of fuel) occured, so cancel the launch
+			var/datum/shuttle/autodock/S = src
+			if(istype(S))
+				S.cancel_launch(null)
+			return
 
 		arrive_time = world.time + travel_time*10
 		moving_status = SHUTTLE_INTRANSIT
@@ -99,6 +120,8 @@
 
 		moving_status = SHUTTLE_IDLE
 
+/datum/shuttle/proc/fuel_check()
+	return 1 //fuel check should always pass in non-overmap shuttles (they have magic engines)
 
 /datum/shuttle/proc/attempt_move(var/obj/effect/shuttle_landmark/destination)
 	if(current_location == destination)
@@ -134,6 +157,7 @@
 					bug.gib()
 				else
 					qdel(AM) //it just gets atomized I guess? TODO throw it into space somewhere, prevents people from using shuttles as an atom-smasher
+	var/list/powernets = list()
 	for(var/area/A in shuttle_area)
 		// if there was a zlevel above our origin, erase our ceiling now we're leaving
 		if(HasAbove(current_location.z))
@@ -141,19 +165,24 @@
 				var/turf/TA = GetAbove(TO)
 				if(istype(TA, ceiling_type))
 					TA.ChangeTurf(get_base_turf_by_area(TA), 1, 1)
-
-		for(var/mob/M in A)
-			if(M.client)
+		if(knockdown)
+			for(var/mob/M in A)
 				spawn(0)
-					if(M.buckled)
-						to_chat(M, "<span class='warning'>Sudden acceleration presses you into your chair!</span>")
-						shake_camera(M, 3, 1)
-					else
-						to_chat(M, "<span class='warning'>The floor lurches beneath you!</span>")
-						shake_camera(M, 10, 1)
-			if(istype(M, /mob/living/carbon))
-				if(!M.buckled)
-					M.Weaken(3)
+					if(istype(M, /mob/living/carbon))
+						if(M.buckled)
+							to_chat(M, "<span class='warning'>Sudden acceleration presses you into your chair!</span>")
+							shake_camera(M, 3, 1)
+						else
+							to_chat(M, "<span class='warning'>The floor lurches beneath you!</span>")
+							shake_camera(M, 10, 1)
+							M.visible_message("<span class='warning'>[M.name] is tossed around by the sudden acceleration!</span>")	
+							M.throw_at_random(FALSE, 4, 1)
+
+		for(var/obj/structure/cable/C in A)
+			powernets |= C.powernet
+	if(logging_home_tag)
+		var/datum/shuttle_log/s_log = shuttle_controller.shuttle_logs[src]
+		s_log.handle_move(current_location, destination)
 
 	translate_turfs(turf_translation, current_location.base_area, current_location.base_turf)
 	current_location = destination
@@ -166,21 +195,27 @@
 				if(istype(TA, get_base_turf_by_area(TA)) || istype(TA, /turf/simulated/open))
 					TA.ChangeTurf(ceiling_type, 1, 1)
 
-	//TODO replace these with locate() in destination
-	// Power-related checks. If shuttle contains power related machinery, update powernets.
-	var/update_power = 0
-	for(var/obj/machinery/power/P in destination)
-		update_power = 1
-		break
-
-	for(var/obj/structure/cable/C in destination)
-		update_power = 1
-		break
-
-	if(update_power)
-		makepowernets()
-	return
+	// Remove all powernets that were affected, and rebuild them.
+	var/list/cables = list()
+	for(var/datum/powernet/P in powernets)
+		cables |= P.cables
+		qdel(P)
+	for(var/obj/structure/cable/C in cables)
+		if(!C.powernet)
+			var/datum/powernet/NewPN = new()
+			NewPN.add_cable(C)
+			propagate_network(C,C.powernet)
 
 //returns 1 if the shuttle has a valid arrive time
 /datum/shuttle/proc/has_arrive_time()
 	return (moving_status == SHUTTLE_INTRANSIT)
+
+/datum/shuttle/autodock/proc/get_location_name()
+	if(moving_status == SHUTTLE_INTRANSIT)
+		return "In transit"
+	return current_location.name
+
+/datum/shuttle/autodock/proc/get_destination_name()
+	if(!next_location)
+		return "None"
+	return next_location.name

@@ -33,12 +33,12 @@
 	desc = "Its a gun. It's pretty terrible, though."
 	icon = 'icons/obj/gun.dmi'
 	item_icons = list(
-		slot_l_hand_str = 'icons/mob/items/lefthand_guns.dmi',
-		slot_r_hand_str = 'icons/mob/items/righthand_guns.dmi',
+		slot_l_hand_str = 'icons/mob/onmob/items/lefthand_guns.dmi',
+		slot_r_hand_str = 'icons/mob/onmob/items/righthand_guns.dmi',
 		)
 	icon_state = "detective"
 	item_state = "gun"
-	flags =  CONDUCT
+	obj_flags =  OBJ_FLAG_CONDUCTIBLE
 	slot_flags = SLOT_BELT|SLOT_HOLSTER
 	matter = list(DEFAULT_WALL_MATERIAL = 2000)
 	w_class = ITEM_SIZE_NORMAL
@@ -56,6 +56,7 @@
 	var/move_delay = 1
 	var/fire_sound = 'sound/weapons/gunshot/gunshot.ogg'
 	var/fire_sound_text = "gunshot"
+	var/fire_anim = null
 	var/screen_shake = 0 //shouldn't be greater than 2 unless zoomed
 	var/silenced = 0
 	var/accuracy = 0   //accuracy is measured in tiles. +1 accuracy means that everything is effectively one tile closer for the purpose of miss chance, -1 means the opposite. launchers are not supported, at the moment.
@@ -64,6 +65,7 @@
 	var/list/dispersion = list(0)
 	var/one_hand_penalty
 	var/wielded_item_state
+	var/combustion	//whether it creates hotspot when fired
 
 	var/next_fire_time = 0
 
@@ -89,12 +91,6 @@
 
 /obj/item/weapon/gun/update_twohanding()
 	if(one_hand_penalty)
-		var/mob/living/M = loc
-		if(istype(M))
-			if(M.can_wield_item(src) && src.is_held_twohanded(M))
-				name = "[initial(name)] (wielded)"
-			else
-				name = initial(name)
 		update_icon() // In case item_state is set somewhere else.
 	..()
 
@@ -153,7 +149,7 @@
 		return
 
 	if(user && user.a_intent == I_HELP) //regardless of what happens, refuse to shoot if help intent is on
-		to_chat(user, "<span class='warning'>You refrain from firing your [src] as your intent is set to help.</span>")
+		to_chat(user, "<span class='warning'>You refrain from firing \the [src] as your intent is set to help.</span>")
 	else
 		Fire(A,user,params) //Otherwise, fire normally.
 
@@ -237,6 +233,9 @@
 
 //called after successfully firing
 /obj/item/weapon/gun/proc/handle_post_fire(mob/user, atom/target, var/pointblank=0, var/reflex=0)
+	if(fire_anim)
+		flick(fire_anim, src)
+
 	if(!silenced)
 		if(reflex)
 			user.visible_message(
@@ -278,6 +277,11 @@
 	if(screen_shake)
 		spawn()
 			shake_camera(user, screen_shake+1, screen_shake)
+
+	if(combustion)
+		var/turf/curloc = get_turf(src)
+		curloc.hotspot_expose(700, 5)
+
 	update_icon()
 
 
@@ -297,7 +301,7 @@
 				max_mult = G.point_blank_mult()
 	P.damage *= max_mult
 
-/obj/item/weapon/gun/proc/process_accuracy(obj/projectile, mob/user, atom/target, var/burst, var/held_twohanded)
+/obj/item/weapon/gun/proc/process_accuracy(obj/projectile, mob/living/user, atom/target, var/burst, var/held_twohanded)
 	var/obj/item/projectile/P = projectile
 	if(!istype(P))
 		return //default behaviour only applies to true projectiles
@@ -320,6 +324,8 @@
 		//Kinda balanced by fact you need like 2 seconds to aim
 		//As opposed to no-delay pew pew
 		P.accuracy += 2
+
+	P.accuracy += user.ranged_accuracy_mods()
 
 //does the actual launching of the projectile
 /obj/item/weapon/gun/proc/process_projectile(obj/projectile, mob/user, atom/target, var/target_zone, var/params=null)
@@ -425,16 +431,23 @@
 		to_chat(user, "The fire selector is set to [current_mode.name].")
 
 /obj/item/weapon/gun/proc/switch_firemodes()
-	if(firemodes.len <= 1)
-		return null
 
-	sel_mode++
-	if(sel_mode > firemodes.len)
-		sel_mode = 1
+	var/next_mode = get_next_firemode()
+	if(!next_mode || next_mode == sel_mode)
+		return null
+	
+	sel_mode = next_mode
 	var/datum/firemode/new_mode = firemodes[sel_mode]
 	new_mode.apply_to(src)
 
 	return new_mode
+
+/obj/item/weapon/gun/proc/get_next_firemode()
+	if(firemodes.len <= 1)
+		return null
+	. = sel_mode + 1
+	if(. > firemodes.len)
+		. = 1
 
 /obj/item/weapon/gun/attack_self(mob/user)
 	var/datum/firemode/new_mode = switch_firemodes(user)

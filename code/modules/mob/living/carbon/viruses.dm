@@ -44,7 +44,8 @@
 			if(common_antibodies.len)
 				V.dead = 1
 
-	immunity = min(immunity + 0.25, immunity_norm)
+	if(immunity > 0.2 * immunity_norm && immunity < immunity_norm)
+		immunity = min(immunity + 0.25, immunity_norm)
 
 	if(life_tick % 5 && immunity < 15 && chem_effects[CE_ANTIVIRAL] < VIRUS_COMMON && !virus2.len)
 		var/infection_prob = 15 - immunity
@@ -55,7 +56,7 @@
 			infect_mob_random_lesser(src)
 
 /mob/living/carbon/proc/virus_immunity()
-	var/antibiotic_boost = reagents.get_reagent_amount("spaceacillin") / (REAGENTS_OVERDOSE/2)
+	var/antibiotic_boost = reagents.get_reagent_amount(/datum/reagent/spaceacillin) / (REAGENTS_OVERDOSE/2)
 	return max(immunity/100 * (1+antibiotic_boost), antibiotic_boost)
 
 /mob/living/carbon/proc/immunity_weakness()

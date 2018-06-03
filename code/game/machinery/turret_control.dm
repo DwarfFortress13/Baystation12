@@ -17,6 +17,7 @@
 	var/lethal = 0
 	var/locked = 1
 	var/area/control_area //can be area name, path or nothing.
+	var/mob/living/silicon/ai/master_ai
 
 	var/check_arrest = 1	//checks if the perp is set to arrest
 	var/check_records = 1	//checks if a security record exists at all
@@ -42,7 +43,7 @@
 		var/area/A = control_area
 		if(A && istype(A))
 			A.turret_controls -= src
-	..()
+	. = ..()
 
 /obj/machinery/turretid/Initialize()
 	if(!control_area)
@@ -68,6 +69,11 @@
 		to_chat(user, "<span class='notice'>There seems to be a firewall preventing you from accessing this device.</span>")
 		return 1
 
+	if(malf_upgraded && master_ai)
+		if((user == master_ai) || (user in master_ai.connected_robots))
+			return 0
+		return 1
+
 	if(locked && !issilicon(user))
 		to_chat(user, "<span class='notice'>Access denied.</span>")
 		return 1
@@ -84,7 +90,7 @@
 	if(stat & BROKEN)
 		return
 
-	if(istype(W, /obj/item/weapon/card/id)||istype(W, /obj/item/device/pda))
+	if(istype(W, /obj/item/weapon/card/id)||istype(W, /obj/item/modular_computer))
 		if(src.allowed(usr))
 			if(emagged)
 				to_chat(user, "<span class='notice'>The turret control is unresponsive.</span>")
@@ -207,13 +213,13 @@
 	else if (enabled)
 		if (lethal)
 			icon_state = "control_kill"
-			set_light(1.5, 1,"#990000")
+			set_light(1, 0.5, 2, 2, "#990000")
 		else
 			icon_state = "control_stun"
-			set_light(1.5, 1,"#FF9900")
+			set_light(1, 0.5, 2, 2, "#ff9900")
 	else
 		icon_state = "control_standby"
-		set_light(1.5, 1,"#003300")
+		set_light(1, 0.5, 2, 2, "#003300")
 
 /obj/machinery/turretid/emp_act(severity)
 	if(enabled)
@@ -235,3 +241,13 @@
 				updateTurrets()
 
 	..()
+
+
+/obj/machinery/turretid/malf_upgrade(var/mob/living/silicon/ai/user)
+	..()
+	malf_upgraded = 1
+	locked = 1
+	ailock = 0
+	to_chat(user, "\The [src] has been upgraded. It has been locked and can not be tampered with by anyone but you and your cyborgs.")
+	master_ai = user
+	return 1

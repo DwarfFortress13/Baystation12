@@ -75,6 +75,9 @@
 	if(buckled_mob)
 		buckled_mob.set_dir(dir)
 
+/obj/structure/bed/chair/AltClick()
+	rotate()
+
 /obj/structure/bed/chair/verb/rotate()
 	set name = "Rotate Chair"
 	set category = "Object"
@@ -141,17 +144,14 @@
 	material_alteration = MATERIAL_ALTERATION_NONE
 
 /obj/structure/bed/chair/office/attackby(obj/item/weapon/W as obj, mob/user as mob)
-	if(istype(W,/obj/item/stack) || istype(W, /obj/item/weapon/wirecutters))
+	if(istype(W,/obj/item/stack) || isWirecutter(W))
 		return
 	..()
 
 /obj/structure/bed/chair/office/Move()
-	..()
+	. = ..()
 	if(buckled_mob)
 		var/mob/living/occupant = buckled_mob
-		occupant.buckled = null
-		occupant.Move(src.loc)
-		occupant.buckled = src
 		if (occupant && (src.loc != occupant.loc))
 			if (propelled)
 				for (var/mob/O in src.loc)
@@ -211,3 +211,8 @@
 /obj/structure/bed/chair/wood/wings
 	base_icon = "wooden_chair_wings"
 	icon_state = "wooden_chair_wings_preview"
+
+/obj/structure/bed/chair/bogani
+	desc = "A strange chair, not from around here."
+	base_icon = "bogchair"
+	icon_state = "bogchair_preview"

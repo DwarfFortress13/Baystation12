@@ -4,7 +4,7 @@
 	desc = "Small wall-mounted holographic projector."
 	icon = 'icons/obj/holosign.dmi'
 	icon_state = "sign_off"
-	layer = ABOVE_OBJ_LAYER
+	layer = ABOVE_DOOR_LAYER
 	use_power = 1
 	idle_power_usage = 2
 	active_power_usage = 70
@@ -54,14 +54,13 @@
 /obj/machinery/button/holosign/attack_hand(mob/user as mob)
 	if(..())
 		return
-	add_fingerprint(user)
 
 	use_power(5)
 
 	active = !active
 	update_icon()
 
-	for(var/obj/machinery/holosign/M in GLOB.machines)
+	for(var/obj/machinery/holosign/M in SSmachines.machinery)
 		if (M.id == src.id)
 			spawn( 0 )
 				M.toggle()

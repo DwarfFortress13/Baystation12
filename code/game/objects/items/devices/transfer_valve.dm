@@ -1,6 +1,8 @@
 /obj/item/device/transfer_valve
 	name = "tank transfer valve"
-	desc = "Regulates the transfer of air between two tanks."
+	desc = "A small, versatile valve with dual-headed heat-resistant pipes. This mechanism is the standard size for coupling with portable gas tanks."
+	description_info = "This machine is used to merge the contents of two different gas tanks. Plug the tanks into the transfer, then open the valve to mix them together. You can also attach various assembly devices to trigger this process."
+	description_antag = "With a tank of hot phoron and cold oxygen, this benign little atmospheric device becomes an incredibly deadly bomb. You don't want to be anywhere near it when it goes off."
 	icon = 'icons/obj/assemblies.dmi'
 	icon_state = "valve_1"
 	var/obj/item/weapon/tank/tank_one
@@ -9,7 +11,7 @@
 	var/mob/attacher = null
 	var/valve_open = 0
 	var/toggle = 1
-	flags = PROXMOVE
+	movable_flags = MOVABLE_FLAG_PROXMOVE
 
 /obj/item/device/transfer_valve/proc/process_activation(var/obj/item/device/D)
 
@@ -91,7 +93,7 @@
 	ui = GLOB.nanomanager.try_update_ui(user, src, ui_key, ui, data, force_open)
 	if (!ui)
 		// the ui does not exist, so we'll create a new() one
-        // for a list of parameters and their descriptions see the code docs in \code\modules\nano\nanoui.dm
+		// for a list of parameters and their descriptions see the code docs in \code\modules\nano\nanoui.dm
 		ui = new(user, src, ui_key, "transfer_valve.tmpl", "Tank Transfer Valve", 460, 280)
 		// when the ui is first opened this is the data it will use
 		ui.set_initial_data(data)
@@ -120,7 +122,6 @@
 			update_icon()
 		if(href_list["device"])
 			attached_device.attack_self(usr)
-	src.add_fingerprint(usr)
 	return 1 // Returning 1 sends an update to attached UIs
 
 /obj/item/device/transfer_valve/process_activation(var/obj/item/device/D)

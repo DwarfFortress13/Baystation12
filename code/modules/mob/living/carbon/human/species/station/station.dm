@@ -16,7 +16,12 @@
 	gluttonous = GLUT_TINY
 
 	spawn_flags = SPECIES_CAN_JOIN
-	appearance_flags = HAS_HAIR_COLOR | HAS_SKIN_TONE | HAS_LIPS | HAS_UNDERWEAR | HAS_EYE_COLOR
+	appearance_flags = HAS_HAIR_COLOR | HAS_SKIN_TONE_NORMAL | HAS_LIPS | HAS_UNDERWEAR | HAS_EYE_COLOR
+
+	sexybits_location = BP_GROIN
+
+	inherent_verbs = list(
+		/mob/living/carbon/human/proc/tie_hair)
 
 /datum/species/human/get_bodytype(var/mob/living/carbon/human/H)
 	return SPECIES_HUMAN
@@ -70,69 +75,6 @@
 		return "staring blankly, not reacting to your presence"
 	return ..()
 
-/datum/species/unathi
-	name = SPECIES_UNATHI
-	name_plural = SPECIES_UNATHI
-	icobase = 'icons/mob/human_races/r_lizard.dmi'
-	deform = 'icons/mob/human_races/r_def_lizard.dmi'
-	tail = "sogtail"
-	tail_animation = 'icons/mob/species/unathi/tail.dmi'
-	unarmed_types = list(/datum/unarmed_attack/stomp, /datum/unarmed_attack/tail, /datum/unarmed_attack/claws, /datum/unarmed_attack/bite/sharp)
-	primitive_form = "Stok"
-	darksight = 3
-	gluttonous = GLUT_TINY
-	slowdown = 0.5
-	brute_mod = 0.8
-	num_alternate_languages = 2
-	secondary_langs = list(LANGUAGE_UNATHI)
-	name_language = LANGUAGE_UNATHI
-	health_hud_intensity = 2
-
-	min_age = 18
-	max_age = 260
-
-	blurb = "A heavily reptillian species, Unathi (or 'Sinta as they call themselves) hail from the \
-	Uuosa-Eso system, which roughly translates to 'burning mother'.<br/><br/>Coming from a harsh, radioactive \
-	desert planet, they mostly hold ideals of honesty, virtue, martial combat and bravery above all \
-	else, frequently even their own lives. They prefer warmer temperatures than most species and \
-	their native tongue is a heavy hissing laungage called Sinta'Unathi."
-
-	cold_level_1 = 280 //Default 260 - Lower is better
-	cold_level_2 = 220 //Default 200
-	cold_level_3 = 130 //Default 120
-
-	heat_level_1 = 420 //Default 360 - Higher is better
-	heat_level_2 = 480 //Default 400
-	heat_level_3 = 1100 //Default 1000
-
-	spawn_flags = SPECIES_CAN_JOIN | SPECIES_IS_WHITELISTED
-	appearance_flags = HAS_HAIR_COLOR | HAS_LIPS | HAS_UNDERWEAR | HAS_SKIN_COLOR | HAS_EYE_COLOR
-
-	flesh_color = "#34AF10"
-
-	reagent_tag = IS_UNATHI
-	base_color = "#066000"
-	blood_color = "#f24b2e"
-
-	heat_discomfort_level = 295
-	heat_discomfort_strings = list(
-		"You feel soothingly warm.",
-		"You feel the heat sink into your bones.",
-		"You feel warm enough to take a nap."
-		)
-
-	cold_discomfort_level = 292
-	cold_discomfort_strings = list(
-		"You feel chilly.",
-		"You feel sluggish and cold.",
-		"Your scales bristle against the cold."
-		)
-	breathing_sound = 'sound/voice/lizard.ogg'
-
-/datum/species/unathi/equip_survival_gear(var/mob/living/carbon/human/H)
-	..()
-	H.equip_to_slot_or_del(new /obj/item/clothing/shoes/sandal(H),slot_shoes)
-
 /datum/species/tajaran
 	name = SPECIES_TAJARA
 	name_plural = "Tajaran"
@@ -141,25 +83,29 @@
 	tail = "tajtail"
 	tail_animation = 'icons/mob/species/tajaran/tail.dmi'
 	default_h_style = "Tajaran Ears"
-	unarmed_types = list(/datum/unarmed_attack/stomp, /datum/unarmed_attack/kick, /datum/unarmed_attack/claws, /datum/unarmed_attack/bite/sharp)
-	darksight = 8
+	unarmed_types = list(/datum/unarmed_attack/stomp, /datum/unarmed_attack/kick, /datum/unarmed_attack/claws, /datum/unarmed_attack/punch, /datum/unarmed_attack/bite/sharp)
+	darksight_range = 8
+	darksight_tint = DARKTINT_GOOD
 	slowdown = -0.5
 	brute_mod = 1.15
 	burn_mod =  1.15
+	flash_mod = 1.4
 	gluttonous = GLUT_TINY
 	num_alternate_languages = 2
-	secondary_langs = list(LANGUAGE_SIIK_MAAS, LANGUAGE_SIIK_TAJR)
+	secondary_langs = list(LANGUAGE_SIIK_TAJR)
+	additional_langs = list(LANGUAGE_SIIK_MAAS)
 	name_language = LANGUAGE_SIIK_MAAS
 	health_hud_intensity = 1.75
 
-	min_age = 17
-	max_age = 80
+	min_age = 19
+	max_age = 140
 
-	blurb = "The Tajaran race is a species of feline-like bipeds hailing from the planet of Ahdomai in the \
-	S'randarr system. They have been brought up into the space age by the Humans and Skrell, and have been \
-	influenced heavily by their long history of Slavemaster rule. They have a structured, clan-influenced way \
-	of family and politics. They prefer colder environments, and speak a variety of languages, mostly Siik'Maas, \
-	using unique inflections their mouths form."
+	blurb = "The Tajaran are a species of furred mammalian bipeds hailing from the chilly planet of Ahdomai \
+	in the Zamsiin-lr system. They are a naturally superstitious species, with the new generations growing up with tales \
+	of the heroic struggles of their forebears against the Overseers. This spirit has led them forward to the \
+	reconstruction and advancement of their society to what they are today. Their pride for the struggles they \
+	went through is heavily tied to their spiritual beliefs. Recent discoveries have jumpstarted the progression \
+	of highly advanced cybernetic technology, causing a culture shock within Tajaran society."
 
 	cold_level_1 = 200 //Default 260
 	cold_level_2 = 140 //Default 200
@@ -174,11 +120,13 @@
 	spawn_flags = SPECIES_CAN_JOIN | SPECIES_IS_WHITELISTED
 	appearance_flags = HAS_HAIR_COLOR | HAS_LIPS | HAS_UNDERWEAR | HAS_SKIN_COLOR | HAS_EYE_COLOR
 
-	flesh_color = "#AFA59E"
+	flesh_color = "#afa59e"
 	base_color = "#333333"
-	blood_color = "#862A51"
-
+	blood_color = "#862a51"
+	organs_icon = 'icons/mob/human_races/organs/tajaran.dmi'
 	reagent_tag = IS_TAJARA
+
+	move_trail = /obj/effect/decal/cleanable/blood/tracks/paw
 
 	heat_discomfort_level = 292
 	heat_discomfort_strings = list(
@@ -187,6 +135,8 @@
 		"Your overheated skin itches."
 		)
 	cold_discomfort_level = 275
+
+	sexybits_location = BP_GROIN
 
 /datum/species/tajaran/equip_survival_gear(var/mob/living/carbon/human/H)
 	..()
@@ -198,6 +148,7 @@
 	name_plural = SPECIES_SKRELL
 	icobase = 'icons/mob/human_races/r_skrell.dmi'
 	deform = 'icons/mob/human_races/r_def_skrell.dmi'
+	eye_icon = "skrell_eyes_s"
 	primitive_form = "Neaera"
 	unarmed_types = list(/datum/unarmed_attack/punch)
 	blurb = "An amphibious species, Skrell come from the star system known as Qerr'Vallis, which translates to 'Star of \
@@ -213,14 +164,28 @@
 	min_age = 19
 	max_age = 90
 
-	darksight = 4
+	burn_mod = 0.9
+	oxy_mod = 1.3
+	flash_mod = 1.2
+	toxins_mod = 0.8
+	siemens_coefficient = 1.3
+	warning_low_pressure = WARNING_LOW_PRESSURE * 1.4
+	hazard_low_pressure = HAZARD_LOW_PRESSURE * 2
+	warning_high_pressure = WARNING_HIGH_PRESSURE / 0.8125
+	hazard_high_pressure = HAZARD_HIGH_PRESSURE / 0.84615
+
+	body_temperature = null // cold-blooded, implemented the same way nabbers do it
+
+	darksight_range = 4
+	darksight_tint = DARKTINT_MODERATE
 
 	spawn_flags = SPECIES_CAN_JOIN | SPECIES_IS_WHITELISTED
 	appearance_flags = HAS_HAIR_COLOR | HAS_LIPS | HAS_UNDERWEAR | HAS_SKIN_COLOR
 
-	flesh_color = "#8CD7A3"
-	blood_color = "#1D2CBF"
+	flesh_color = "#8cd7a3"
+	blood_color = "#1d2cbf"
 	base_color = "#006666"
+	organs_icon = 'icons/mob/human_races/organs/skrell.dmi'
 
 	cold_level_1 = 280 //Default 260 - Lower is better
 	cold_level_2 = 220 //Default 200
@@ -235,7 +200,7 @@
 	has_limbs = list(
 		BP_CHEST =  list("path" = /obj/item/organ/external/chest),
 		BP_GROIN =  list("path" = /obj/item/organ/external/groin),
-		BP_HEAD =   list("path" = /obj/item/organ/external/head/skrell),
+		BP_HEAD =   list("path" = /obj/item/organ/external/head),
 		BP_L_ARM =  list("path" = /obj/item/organ/external/arm),
 		BP_R_ARM =  list("path" = /obj/item/organ/external/arm/right),
 		BP_L_LEG =  list("path" = /obj/item/organ/external/leg),
@@ -260,6 +225,7 @@
 	siemens_coefficient = 0.3
 	show_ssd = "completely quiescent"
 	num_alternate_languages = 2
+	strength = STR_VHIGH
 	secondary_langs = list(LANGUAGE_ROOTGLOBAL)
 	name_language = LANGUAGE_ROOTLOCAL
 	spawns_with_stack = 0
@@ -300,6 +266,10 @@
 		BP_R_FOOT = list("path" = /obj/item/organ/external/diona/foot/right)
 		)
 
+	base_auras = list(
+		/obj/aura/regenerating/human/diona
+		)
+
 	inherent_verbs = list(
 		/mob/living/carbon/human/proc/diona_split_nymph,
 		/mob/living/carbon/human/proc/diona_heal_toggle
@@ -318,12 +288,12 @@
 
 	body_temperature = T0C + 15		//make the plant people have a bit lower body temperature, why not
 
-	flags = NO_SCAN | IS_PLANT | NO_PAIN | NO_SLIP
+	species_flags = SPECIES_FLAG_NO_SCAN | SPECIES_FLAG_IS_PLANT | SPECIES_FLAG_NO_PAIN | SPECIES_FLAG_NO_SLIP
 	appearance_flags = 0
-	spawn_flags = SPECIES_CAN_JOIN | SPECIES_IS_WHITELISTED | SPECIES_NO_FBP_CONSTRUCTION | SPECIES_NO_FBP_CHARGEN
+	spawn_flags = SPECIES_CAN_JOIN | SPECIES_IS_WHITELISTED | SPECIES_NO_FBP_CONSTRUCTION | SPECIES_NO_FBP_CHARGEN | SPECIES_NO_LACE
 
 	blood_color = "#004400"
-	flesh_color = "#907E4A"
+	flesh_color = "#907e4a"
 
 	reagent_tag = IS_DIONA
 	genders = list(PLURAL)
@@ -347,10 +317,10 @@
 	return 0
 
 /datum/species/diona/equip_survival_gear(var/mob/living/carbon/human/H)
-	if(H.backbag == 1)
-		H.equip_to_slot_or_del(new /obj/item/device/flashlight/flare(H), slot_r_hand)
-	else
+	if(istype(H.get_equipped_item(slot_back), /obj/item/weapon/storage/backpack))
 		H.equip_to_slot_or_del(new /obj/item/device/flashlight/flare(H.back), slot_in_backpack)
+	else
+		H.equip_to_slot_or_del(new /obj/item/device/flashlight/flare(H), slot_r_hand)
 
 /datum/species/diona/handle_post_spawn(var/mob/living/carbon/human/H)
 	H.gender = NEUTER
@@ -370,3 +340,7 @@
 
 /datum/species/diona/get_blood_name()
 	return "sap"
+
+/datum/species/diona/handle_environment_special(var/mob/living/carbon/human/H)
+	if(!H.InStasis() && H.stat != DEAD && H.nutrition < 10)
+		H.take_overall_damage(2,0)

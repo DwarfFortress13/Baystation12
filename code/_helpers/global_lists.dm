@@ -3,14 +3,11 @@
 
 var/global/list/cable_list = list()					//Index for all cables, so that powernets don't have to look through the entire world all the time
 var/global/list/chemical_reactions_list				//list of all /datum/chemical_reaction datums. Used during chemical reactions
-var/global/list/chemical_reagents_list				//list of all /datum/reagent datums indexed by reagent id. Used by chemistry stuff
 var/global/list/landmarks_list = list()				//list of all landmarks created
 var/global/list/surgery_steps = list()				//list of all surgery steps  |BS12
 var/global/list/side_effects = list()				//list of all medical sideeffects types by thier names |BS12
 var/global/list/mechas_list = list()				//list of all mechs. Used by hostile mobs target tracking.
 var/global/list/joblist = list()					//list of all jobstypes, minus borg and AI
-
-var/global/list/turfs = list()						//list of all turfs
 
 #define all_genders_define_list list(MALE,FEMALE,PLURAL,NEUTER)
 #define all_genders_text_list list("Male","Female","Plural","Neuter")
@@ -24,9 +21,6 @@ var/global/list/playable_species = list(SPECIES_HUMAN)    // A list of ALL playa
 
 var/list/mannequins_
 
-// Posters
-var/global/list/poster_designs = list()
-
 // Grabs
 var/global/list/all_grabstates[0]
 var/global/list/all_grabobjects[0]
@@ -35,18 +29,15 @@ var/global/list/all_grabobjects[0]
 var/list/obj/item/device/uplink/world_uplinks = list()
 
 //Preferences stuff
-	//Hairstyles
-var/global/list/hair_styles_list = list()			//stores /datum/sprite_accessory/hair indexed by name
-var/global/list/hair_styles_male_list = list()
-var/global/list/hair_styles_female_list = list()
-var/global/list/facial_hair_styles_list = list()	//stores /datum/sprite_accessory/facial_hair indexed by name
-var/global/list/facial_hair_styles_male_list = list()
-var/global/list/facial_hair_styles_female_list = list()
+//Hairstyles
+GLOBAL_LIST_EMPTY(hair_styles_list)        //stores /datum/sprite_accessory/hair indexed by name
+GLOBAL_LIST_EMPTY(facial_hair_styles_list) //stores /datum/sprite_accessory/facial_hair indexed by name
+
 var/global/list/skin_styles_female_list = list()		//unused
+GLOBAL_LIST_EMPTY(body_marking_styles_list)		//stores /datum/sprite_accessory/marking indexed by name
 
-var/datum/category_collection/underwear/global_underwear = new()
+GLOBAL_DATUM_INIT(underwear, /datum/category_collection/underwear, new())
 
-var/global/list/backbaglist = list("Nothing", "Backpack", "Satchel", "Brown Satchel", "Messenger Bag", "Black Satchel")
 var/global/list/exclude_jobs = list(/datum/job/ai,/datum/job/cyborg)
 
 // Visual nets
@@ -95,7 +86,7 @@ var/global/list/string_slot_flags = list(
 //////////////////////////
 
 /hook/global_init/proc/populateGlobalLists()
-    possible_cable_coil_colours = sortAssoc(list(
+	possible_cable_coil_colours = sortAssoc(list(
 		"Yellow" = COLOR_YELLOW,
 		"Green" = COLOR_LIME,
 		"Pink" = COLOR_PINK,
@@ -105,7 +96,7 @@ var/global/list/string_slot_flags = list(
 		"Red" = COLOR_RED,
 		"White" = COLOR_WHITE
 	))
-    return 1
+	return 1
 
 /proc/get_mannequin(var/ckey)
 	if(!mannequins_)
@@ -122,25 +113,19 @@ var/global/list/string_slot_flags = list(
 	paths = typesof(/datum/sprite_accessory/hair) - /datum/sprite_accessory/hair
 	for(var/path in paths)
 		var/datum/sprite_accessory/hair/H = new path()
-		hair_styles_list[H.name] = H
-		switch(H.gender)
-			if(MALE)	hair_styles_male_list += H.name
-			if(FEMALE)	hair_styles_female_list += H.name
-			else
-				hair_styles_male_list += H.name
-				hair_styles_female_list += H.name
+		GLOB.hair_styles_list[H.name] = H
 
 	//Facial Hair - Initialise all /datum/sprite_accessory/facial_hair into an list indexed by facialhair-style name
 	paths = typesof(/datum/sprite_accessory/facial_hair) - /datum/sprite_accessory/facial_hair
 	for(var/path in paths)
 		var/datum/sprite_accessory/facial_hair/H = new path()
-		facial_hair_styles_list[H.name] = H
-		switch(H.gender)
-			if(MALE)	facial_hair_styles_male_list += H.name
-			if(FEMALE)	facial_hair_styles_female_list += H.name
-			else
-				facial_hair_styles_male_list += H.name
-				facial_hair_styles_female_list += H.name
+		GLOB.facial_hair_styles_list[H.name] = H
+
+	//Body markings - Initialise all /datum/sprite_accessory/marking into an list indexed by marking name
+	paths = typesof(/datum/sprite_accessory/marking) - /datum/sprite_accessory/marking
+	for(var/path in paths)
+		var/datum/sprite_accessory/marking/M = new path()
+		GLOB.body_marking_styles_list[M.name] = M
 
 	//Surgery Steps - Initialize all /datum/surgery_step into a list
 	paths = typesof(/datum/surgery_step)-/datum/surgery_step
@@ -186,12 +171,6 @@ var/global/list/string_slot_flags = list(
 		if(S.spawn_flags & SPECIES_IS_WHITELISTED)
 			whitelisted_species += S.name
 
-	//Posters
-	paths = typesof(/datum/poster) - /datum/poster
-	for(var/T in paths)
-		var/datum/poster/P = new T
-		poster_designs += P
-
 	//Grabs
 	paths = typesof(/datum/grab) - /datum/grab
 	for(var/T in paths)
@@ -201,9 +180,8 @@ var/global/list/string_slot_flags = list(
 
 	paths = typesof(/obj/item/grab) - /obj/item/grab
 	for(var/T in paths)
-		var/obj/item/grab/G = new T
-		if(G.type_name)
-			all_grabobjects[G.type_name] = T
+		var/obj/item/grab/G = T
+		all_grabobjects[initial(G.type_name)] = T
 
 	for(var/grabstate_name in all_grabstates)
 		var/datum/grab/G = all_grabstates[grabstate_name]

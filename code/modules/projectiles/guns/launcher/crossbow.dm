@@ -59,8 +59,8 @@
 
 	var/obj/item/bolt
 	var/tension = 0                         // Current draw on the bow.
-	var/max_tension = 5                     // Highest possible tension.
-	var/release_speed = 5                   // Speed per unit of tension.
+	var/max_tension = 3                     // Highest possible tension.
+	var/release_speed = 10                  // Speed per unit of tension.
 	var/obj/item/weapon/cell/cell = null    // Used for firing superheated rods.
 	var/current_user                        // Used to check if the crossbow has changed hands since being drawn.
 
@@ -108,7 +108,7 @@
 	tension = 1
 
 	while(bolt && tension && loc == current_user)
-		if(!do_after(user, 25, src)) //crossbow strings don't just magically pull back on their own.
+		if(!do_after(user, 20, src)) //crossbow strings don't just magically pull back on their own.
 			user.visible_message("[usr] stops drawing and relaxes the string of [src].","<span class='warning'>You stop drawing back and relax the string of [src].</span>")
 			tension = 0
 			update_icon()
@@ -163,7 +163,7 @@
 		else
 			to_chat(user, "<span class='notice'>[src] already has a cell installed.</span>")
 
-	else if(istype(W, /obj/item/weapon/screwdriver))
+	else if(isScrewdriver(W))
 		if(cell)
 			var/obj/item/C = cell
 			C.loc = get_turf(user)
@@ -227,7 +227,7 @@
 			else
 				to_chat(user, "<span class='notice'>You need at least three rods to complete this task.</span>")
 			return
-	else if(istype(W,/obj/item/weapon/weldingtool))
+	else if(isWelder(W))
 		if(buildstate == 1)
 			var/obj/item/weapon/weldingtool/T = W
 			if(T.remove_fuel(0,user))
@@ -237,7 +237,7 @@
 			buildstate++
 			update_icon()
 		return
-	else if(istype(W,/obj/item/stack/cable_coil))
+	else if(isCoil(W))
 		var/obj/item/stack/cable_coil/C = W
 		if(buildstate == 2)
 			if(C.use(5))
@@ -265,7 +265,7 @@
 			else
 				to_chat(user, "<span class='notice'>You need at least three plastic sheets to complete this task.</span>")
 			return
-	else if(istype(W,/obj/item/weapon/screwdriver))
+	else if(isScrewdriver(W))
 		if(buildstate == 5)
 			to_chat(user, "<span class='notice'>You secure the crossbow's various parts.</span>")
 			new /obj/item/weapon/gun/launcher/crossbow(get_turf(src))

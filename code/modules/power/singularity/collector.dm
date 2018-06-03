@@ -23,9 +23,9 @@ var/global/list/rad_collectors = list()
 
 /obj/machinery/power/rad_collector/Destroy()
 	rad_collectors -= src
-	..()
+	. = ..()
 
-/obj/machinery/power/rad_collector/process()
+/obj/machinery/power/rad_collector/Process()
 	//so that we don't zero out the meter if the SM is processed first.
 	last_power = last_power_new
 	last_power_new = 0
@@ -55,7 +55,6 @@ var/global/list/rad_collectors = list()
 		else
 			to_chat(user, "<span class='warning'>The controls are locked!</span>")
 			return
-..()
 
 
 /obj/machinery/power/rad_collector/attackby(obj/item/W, mob/user)
@@ -71,11 +70,11 @@ var/global/list/rad_collectors = list()
 		W.loc = src
 		update_icons()
 		return 1
-	else if(istype(W, /obj/item/weapon/crowbar))
+	else if(isCrowbar(W))
 		if(P && !src.locked)
 			eject()
 			return 1
-	else if(istype(W, /obj/item/weapon/wrench))
+	else if(isWrench(W))
 		if(P)
 			to_chat(user, "<span class='notice'>Remove the phoron tank first.</span>")
 			return 1
@@ -93,7 +92,7 @@ var/global/list/rad_collectors = list()
 		else
 			disconnect_from_network()
 		return 1
-	else if(istype(W, /obj/item/weapon/card/id)||istype(W, /obj/item/device/pda))
+	else if(istype(W, /obj/item/weapon/card/id)||istype(W, /obj/item/modular_computer))
 		if (src.allowed(user))
 			if(active)
 				src.locked = !src.locked

@@ -13,6 +13,7 @@
 	w_class = ITEM_SIZE_HUGE //Used for dismembering thresholds, in addition to storage. Humans are w_class 6, so it makes sense that chest is w_class 5.
 	body_part = UPPER_TORSO
 	vital = 1
+	can_heal_overkill = 1
 	amputation_point = "spine"
 	joint = "neck"
 	dislocated = -1
@@ -21,6 +22,7 @@
 	parent_organ = null
 	encased = "ribcage"
 	artery_name = "aorta"
+	cavity_name = "thoracic"
 
 /obj/item/organ/external/chest/robotize()
 	if(..())
@@ -43,13 +45,13 @@
 	min_broken_damage = 35
 	w_class = ITEM_SIZE_LARGE
 	body_part = LOWER_TORSO
-	vital = 1
 	parent_organ = BP_CHEST
 	amputation_point = "lumbar"
 	joint = "hip"
 	dislocated = -1
 	gendered_icon = 1
 	artery_name = "iliac artery"
+	cavity_name = "abdominal"
 
 /obj/item/organ/external/arm
 	organ_tag = BP_L_ARM
@@ -103,7 +105,7 @@
 /obj/item/organ/external/leg/stun_act(var/stun_amount, var/agony_amount)
 	if(!owner || agony_amount < 5)
 		return
-	if(prob(agony_amount*2))
+	if(prob(min(agony_amount*2,50)))
 		to_chat(owner, "<span class='warning'>Your [src] buckles from the shock!</span>")
 		owner.Weaken(5)
 
@@ -136,7 +138,7 @@
 /obj/item/organ/external/foot/stun_act(var/stun_amount, var/agony_amount)
 	if(!owner || agony_amount < 5)
 		return
-	if(prob(agony_amount*4))
+	if(prob(min(agony_amount*4,70)))
 		to_chat(owner, "<span class='warning'>You lose your footing as your [src] spasms!</span>")
 		owner.Weaken(5)
 

@@ -55,13 +55,13 @@ var/list/event_last_fired = list()
 
 
 	possibleEvents[/datum/event/carp_migration] = 20 + 10 * active_with_role["Engineer"]
-	possibleEvents[/datum/event/brand_intelligence] = 20 + 25 * active_with_role["Janitor"]
+	possibleEvents[/datum/event/brand_intelligence] = 10 + 10 * active_with_role["Janitor"]
 
 	possibleEvents[/datum/event/rogue_drone] = 5 + 25 * active_with_role["Engineer"] + 25 * active_with_role["Security"]
 	possibleEvents[/datum/event/infestation] = 100 + 100 * active_with_role["Janitor"]
 
 	possibleEvents[/datum/event/communications_blackout] = 50 + 25 * active_with_role["AI"] + active_with_role["Scientist"] * 25
-	possibleEvents[/datum/event/ionstorm] = active_with_role["AI"] * 25 + active_with_role["Cyborg"] * 25 + active_with_role["Engineer"] * 10 + active_with_role["Scientist"] * 5
+	possibleEvents[/datum/event/ionstorm] = active_with_role["AI"] * 25 + active_with_role["Robot"] * 25 + active_with_role["Engineer"] * 10 + active_with_role["Scientist"] * 5
 	possibleEvents[/datum/event/grid_check] = 25 + 10 * active_with_role["Engineer"]
 	possibleEvents[/datum/event/electrical_storm] = 15 * active_with_role["Janitor"] + 5 * active_with_role["Engineer"]
 	possibleEvents[/datum/event/wallrot] = 30 * active_with_role["Engineer"] + 50 * active_with_role["Gardener"]
@@ -182,7 +182,7 @@ var/list/event_last_fired = list()
 	active_with_role["Security"] = 0
 	active_with_role["Scientist"] = 0
 	active_with_role["AI"] = 0
-	active_with_role["Cyborg"] = 0
+	active_with_role["Robot"] = 0
 	active_with_role["Janitor"] = 0
 	active_with_role["Gardener"] = 0
 
@@ -204,23 +204,23 @@ var/list/event_last_fired = list()
 				else if(istype(R.module, /obj/item/weapon/robot_module/research))
 					active_with_role["Scientist"]++
 
-		if(M.mind.assigned_role in engineering_positions)
+		if(M.mind.assigned_role in GLOB.engineering_positions)
 			active_with_role["Engineer"]++
 
-		if(M.mind.assigned_role in medical_positions)
+		if(M.mind.assigned_role in GLOB.medical_positions)
 			active_with_role["Medical"]++
 
-		if(M.mind.assigned_role in security_positions)
+		if(M.mind.assigned_role in GLOB.security_positions)
 			active_with_role["Security"]++
 
-		if(M.mind.assigned_role in science_positions)
+		if(M.mind.assigned_role in GLOB.science_positions)
 			active_with_role["Scientist"]++
 
 		if(M.mind.assigned_role == "AI")
 			active_with_role["AI"]++
 
-		if(M.mind.assigned_role == "Cyborg")
-			active_with_role["Cyborg"]++
+		if(M.mind.assigned_role == "Robot")
+			active_with_role["Robot"]++
 
 		if(M.mind.assigned_role == "Janitor")
 			active_with_role["Janitor"]++

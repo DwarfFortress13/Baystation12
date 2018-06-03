@@ -16,6 +16,7 @@
 	var/special_target_functional = 1
 
 	var/attacking = 0
+	var/target_zone
 
 	w_class = ITEM_SIZE_NO_CONTAINER
 /*
@@ -26,11 +27,20 @@
 
 	assailant = attacker
 	affecting = victim
+	target_zone = attacker.zone_sel.selecting
+	attacker.remove_cloaking_source(attacker.species)
+	var/obj/item/O = get_targeted_organ()
+	SetName("[name] ([O.name])")
 
 	if(start_grab_name)
 		current_grab = all_grabstates[start_grab_name]
 
-/obj/item/grab/process()
+/obj/item/grab/examine(var/user)
+	..()
+	var/obj/item/O = get_targeted_organ()
+	to_chat(user,"A grab on \the [affecting]'s [O.name].")
+
+/obj/item/grab/Process()
 	current_grab.process(src)
 
 /obj/item/grab/attack_self(mob/user)
@@ -64,7 +74,8 @@
 */
 /obj/item/grab/proc/target_change()
 	var/hit_zone = assailant.zone_sel.selecting
-
+	if(src != assailant.get_active_hand())
+		return 0
 	if(hit_zone && hit_zone != last_target)
 		last_target = hit_zone
 		special_target_functional = current_grab.check_special_target(src)
@@ -78,6 +89,46 @@
 
 /obj/item/grab/proc/can_grab()
 
+	// can't grab non-carbon/human/'s
+	if(!istype(affecting))
+		return 0
+
+	if(assailant.anchored || affecting.anchored)
+		return 0
+
+	if(!assailant.Adjacent(affecting))
+		return 0
+
+	for(var/obj/item/grab/G in affecting.grabbed_by)
+		if(G.assailant == assailant && G.target_zone == target_zone)
+			var/obj/O = G.get_targeted_organ()
+			to_chat(assailant, "<span class='notice'>You already grabbed [affecting]'s [O.name].</span>")
+			return 0
+
+	return 1
+
+// This is for all the sorts of things that need to be checked for pretty much every
+// grab made. Feel free to override it but it stops a lot of situations that could
+// cause runtimes so be careful with it.
+/obj/item/grab/proc/pre_check()
+
+	if(!assailant || !affecting)
+		return 0
+
+	if(assailant == affecting)
+		to_chat(assailant, "<span class='notice'>You can't grab yourself.</span>")
+		return 0
+
+	if(assailant.get_active_hand())
+		to_chat(assailant, "<span class='notice'>You can't grab someone if your hand is full.</span>")
+		return 0
+
+	if(assailant.grabbed_by.len)
+		to_chat(assailant, "<span class='notice'>You can't grab someone if you're being grabbed.</span>")
+		return 0
+
+	return 1
+
 /obj/item/grab/proc/init()
 	last_target = assailant.zone_sel.selecting
 	affecting.update_canmove()
@@ -87,7 +138,7 @@
 
 // Returns the organ of the grabbed person that the grabber is targeting
 /obj/item/grab/proc/get_targeted_organ()
-	return (affecting.get_organ(assailant.zone_sel.selecting))
+	return (affecting.get_organ(target_zone))
 
 /obj/item/grab/proc/resolve_item_attack(var/mob/living/M, var/obj/item/I, var/target_zone)
 	if((M && ishuman(M)) && I)
@@ -96,6 +147,7 @@
 		return 0
 
 /obj/item/grab/proc/action_used()
+	assailant.remove_cloaking_source(assailant.species)
 	last_action = world.time
 
 /obj/item/grab/proc/check_action_cooldown()
@@ -104,8 +156,8 @@
 /obj/item/grab/proc/check_upgrade_cooldown()
 	return (world.time >= last_upgrade + current_grab.upgrade_cooldown)
 
-/obj/item/grab/proc/upgrade()
-	if(!check_upgrade_cooldown())
+/obj/item/grab/proc/upgrade(var/bypass_cooldown = FALSE)
+	if(!check_upgrade_cooldown() && !bypass_cooldown)
 		to_chat(assailant, "<span class='danger'>It's too soon to upgrade.</span>")
 		return
 
@@ -115,6 +167,7 @@
 		last_upgrade = world.time
 		adjust_position()
 		update_icons()
+		current_grab.enter_as_up(src)
 
 /obj/item/grab/proc/downgrade()
 	var/datum/grab/downgrab = current_grab.downgrade(src)
@@ -143,8 +196,10 @@
 /obj/item/grab/proc/handle_resist()
 	current_grab.handle_resist(src)
 
-/obj/item/grab/proc/adjust_position()
-	if(!assailant.Adjacent(affecting))
+/obj/item/grab/proc/adjust_position(var/force = 0)
+	if(force)	affecting.forceMove(assailant.loc)
+
+	if(!assailant || !affecting || !assailant.Adjacent(affecting))
 		qdel(src)
 		return 0
 	else
@@ -152,7 +207,6 @@
 
 /obj/item/grab/proc/reset_position()
 	current_grab.reset_position(src)
-
 
 /*
 	This section is for the simple procs used to return things from current_grab.
@@ -190,6 +244,9 @@
 
 /obj/item/grab/proc/assailant_moved()
 	current_grab.assailant_moved(src)
+
+/obj/item/grab/proc/restrains()
+	return current_grab.restrains
 
 /obj/item/grab/proc/resolve_openhand_attack()
 		return current_grab.resolve_openhand_attack(src)

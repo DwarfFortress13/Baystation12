@@ -34,7 +34,7 @@ datum/preferences
 	pref.real_name          = sanitize_name(pref.real_name, pref.species)
 	if(!pref.real_name)
 		pref.real_name      = random_name(pref.gender, pref.species)
-	pref.spawnpoint         = sanitize_inlist(pref.spawnpoint, spawntypes, initial(pref.spawnpoint))
+	pref.spawnpoint         = sanitize_inlist(pref.spawnpoint, spawntypes(), initial(pref.spawnpoint))
 	pref.be_random_name     = sanitize_integer(pref.be_random_name, 0, 1, initial(pref.be_random_name))
 
 /datum/category_item/player_setup_item/general/basic/content()
@@ -73,23 +73,27 @@ datum/preferences
 		return TOPIC_REFRESH
 
 	else if(href_list["gender"])
-		var/new_gender = input(user, "Choose your character's gender:", "Character Preference", pref.gender) as null|anything in S.genders
-		if(new_gender && CanUseTopic(user))
+		var/new_gender = input(user, "Choose your character's gender:", CHARACTER_PREFERENCE_INPUT_TITLE, pref.gender) as null|anything in S.genders
+		S = all_species[pref.species]
+		if(new_gender && CanUseTopic(user) && (new_gender in S.genders))
 			pref.gender = new_gender
+			if(!(pref.f_style in S.get_facial_hair_styles(pref.gender)))
+				ResetFacialHair()
 		return TOPIC_REFRESH_UPDATE_PREVIEW
 
 	else if(href_list["age"])
-		var/new_age = input(user, "Choose your character's age:\n([S.min_age]-[S.max_age])", "Character Preference", pref.age) as num|null
+		var/new_age = input(user, "Choose your character's age:\n([S.min_age]-[S.max_age])", CHARACTER_PREFERENCE_INPUT_TITLE, pref.age) as num|null
 		if(new_age && CanUseTopic(user))
 			pref.age = max(min(round(text2num(new_age)), S.max_age), S.min_age)
+			pref.skills_allocated = pref.sanitize_skills(pref.skills_allocated)		// The age may invalidate skill loadouts
 			return TOPIC_REFRESH
 
 	else if(href_list["spawnpoint"])
 		var/list/spawnkeys = list()
-		for(var/spawntype in spawntypes)
+		for(var/spawntype in spawntypes())
 			spawnkeys += spawntype
 		var/choice = input(user, "Where would you like to spawn when late-joining?") as null|anything in spawnkeys
-		if(!choice || !spawntypes[choice] || !CanUseTopic(user))	return TOPIC_NOACTION
+		if(!choice || !spawntypes()[choice] || !CanUseTopic(user))	return TOPIC_NOACTION
 		pref.spawnpoint = choice
 		return TOPIC_REFRESH
 

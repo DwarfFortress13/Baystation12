@@ -23,6 +23,9 @@
 /obj/item/organ/internal/stack/emp_act()
 	return
 
+/obj/item/organ/internal/stack/getToxLoss()
+	return 0
+
 /obj/item/organ/internal/stack/vox
 	name = "cortical stack"
 	invasive = 1
@@ -77,7 +80,7 @@
 		owner.ghostize() // Remove the previous owner to avoid their client getting reset.
 	//owner.dna.real_name = backup.name
 	//owner.real_name = owner.dna.real_name
-	//owner.name = owner.real_name
+	//owner.SetName(owner.real_name)
 	//The above three lines were commented out for
 	backup.active = 1
 	backup.transfer_to(owner)

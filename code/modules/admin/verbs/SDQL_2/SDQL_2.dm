@@ -104,10 +104,10 @@
 							var/atom/a = t
 
 							if(a.x)
-								text += ": [t] at ([a.x], [a.y], [a.z])<br>"
+								text += ": [t] at <A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[a.x];Y=[a.y];Z=[a.z]'>([a.x], [a.y], [a.z])</a><br>"
 
 							else if(a.loc && a.loc.x)
-								text += ": [t] in [a.loc] at ([a.loc.x], [a.loc.y], [a.loc.z])<br>"
+								text += ": [t] in <A HREF='?_src_=vars;Vars=\ref[a.loc]'>[a.loc]</A> at <A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[a.loc.x];Y=[a.loc.y];Z=[a.loc.z]'>([a.loc.x], [a.loc.y], [a.loc.z])</a><br>"
 
 							else
 								text += ": [t]<br>"
@@ -115,7 +115,9 @@
 						else
 							text += ": [t]<br>"
 						CHECK_TICK
-					usr << show_browser(usr, text, "window=SDQL-result")
+					if(!text)
+						text = "No results found."
+					show_browser(usr, text, "window=SDQL-result")
 
 				if("update")
 					if("set" in query_tree)
@@ -139,6 +141,8 @@
 										break
 
 							CHECK_TICK
+
+			to_chat(usr, "<span class='notice'>Query executed on [objs.len] object\s.</span>")
 	catch(var/exception/e)
 		to_chat(usr, "<span class='danger'>An exception has occured during the execution of your query and your query has been aborted.</span>")
 		to_chat(usr, "exception name: [e.name]")

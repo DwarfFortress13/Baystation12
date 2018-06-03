@@ -1,7 +1,7 @@
 //TODO: rewrite and standardise all controller datums to the datum/controller type
 //TODO: allow all controllers to be deleted for clean restarts (see WIP master controller stuff) - MC done - lighting done
 
-/client/proc/debug_antagonist_template(antag_type as null|anything in all_antag_types())
+/client/proc/debug_antagonist_template(antag_type as null|anything in GLOB.all_antag_types_)
 	set category = "Debug"
 	set name = "Debug Antagonist"
 	set desc = "Debug an antagonist template."
@@ -9,12 +9,12 @@
 	if (!antag_type)
 		return
 
-	var/datum/antagonist/antag = all_antag_types()[antag_type]
+	var/datum/antagonist/antag = GLOB.all_antag_types_[antag_type]
 	if(antag)
 		usr.client.debug_variables(antag)
 		message_admins("Admin [key_name_admin(usr)] is debugging the [antag.role_text] template.")
 
-/client/proc/debug_controller(controller as null|anything in list("Master","Ticker","Ticker Process","Air","Jobs","Sun","Radio","Supply","Shuttles","Evacuation","Configuration","pAI", "Cameras", "Transfer Controller", "Gas Data","Event","Plants","Alarm","Nano","Chemistry","Wireless","Observation","Alt Appearance Manager","Datacore","Military Branches"))
+/client/proc/debug_controller(controller as null|anything in list("Master","Ticker","Ticker Process","Air","Jobs","Sun","Radio","Supply","Shuttles","Evacuation","Configuration","pAI", "Cameras", "Transfer Controller", "Gas Data","Event","Plants","Alarm","Nano","Wireless","Observation","Alt Appearance Manager","Datacore","Military Branches"))
 	set category = "Debug"
 	set name = "Debug Controller"
 	set desc = "Debug the various periodic loop controllers for the game (be careful!)"
@@ -29,9 +29,6 @@
 		if("Ticker")
 			debug_variables(ticker)
 			feedback_add_details("admin_verb","DTicker")
-		if("Air")
-			debug_variables(air_master)
-			feedback_add_details("admin_verb","DAir")
 		if("Jobs")
 			debug_variables(job_master)
 			feedback_add_details("admin_verb","DJobs")
@@ -77,9 +74,6 @@
 		if("Alt Appearance Manager")
 			debug_variables(appearance_manager)
 			feedback_add_details("admin_verb", "DAltAppearanceManager")
-		if("Datacore")
-			debug_variables(GLOB.data_core)
-			feedback_add_details("admin_verb", "DDatacore")
 		if("Military Branches")
 			debug_variables(mil_branches)
 			feedback_add_details("admin_verb", "DMilBranches")

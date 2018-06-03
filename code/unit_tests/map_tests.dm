@@ -139,14 +139,42 @@
 			for(var/atom/movable/AM in C.contents)
 				total_content_size += C.content_size(AM)
 			if(total_content_size > C.storage_capacity)
-				var/bad_msg = "[ascii_red]--------------- [C.name] \[[C.x] / [C.y] / [C.z]\]"
-				log_unit_test("[bad_msg] Contains more objects than able to hold ([total_content_size] / [C.storage_capacity]). [ascii_reset]")
+				log_bad("[log_info_line(C)] contains more objects than able to hold ([total_content_size] / [C.storage_capacity]).")
 				bad_tests++
 
 	if(bad_tests)
 		fail("\[[bad_tests]\] Some closets contained more objects than they were able to hold.")
 	else
 		pass("No overflowing closets found.")
+
+	return 1
+
+//=======================================================================================
+
+/datum/unit_test/closet_containment_test
+	name = "MAP: Closet Containment Test Player Z levels"
+
+/datum/unit_test/closet_containment_test/start_test()
+	var/bad_tests = 0
+
+	for(var/obj/structure/closet/C in world)
+		if(!C.opened && isPlayerLevel(C.z))
+			var/contents_pre_open = C.contents.Copy()
+			C.dump_contents()
+			C.store_contents()
+			var/list/no_longer_contained_atoms = contents_pre_open - C.contents
+			var/list/previously_not_contained_atoms = C.contents - contents_pre_open
+
+			if(no_longer_contained_atoms.len)
+				bad_tests++
+				log_bad("[log_info_line(C)] no longer contains the following atoms: [log_info_line(no_longer_contained_atoms)]")
+			if(previously_not_contained_atoms.len)
+				log_debug("[log_info_line(C)] now contains the following atoms: [log_info_line(previously_not_contained_atoms)]")
+
+	if(bad_tests)
+		fail("[bad_tests] closet\s with inconsistent pre/post-open contents found.")
+	else
+		pass("No closets with inconsistent pre/post-open contents found.")
 
 	return 1
 
@@ -199,7 +227,7 @@ datum/unit_test/correct_allowed_spawn_test/start_test()
 	var/failed = FALSE
 
 	for(var/spawn_name in GLOB.using_map.allowed_spawns)
-		var/datum/spawnpoint/spawnpoint = spawntypes[spawn_name]
+		var/datum/spawnpoint/spawnpoint = spawntypes()[spawn_name]
 		if(!spawnpoint)
 			log_unit_test("Map allows spawning in [spawn_name], but [spawn_name] is null!")
 			failed = TRUE
@@ -209,11 +237,11 @@ datum/unit_test/correct_allowed_spawn_test/start_test()
 
 	if(failed)
 		log_unit_test("Following spawn points exist:")
-		for(var/spawnpoint in spawntypes)
-			log_unit_test("\t[spawnpoint] ([any2ref(spawnpoint)])")	
+		for(var/spawnpoint in spawntypes())
+			log_unit_test("\t[spawnpoint] ([any2ref(spawnpoint)])")
 		log_unit_test("Following spawn points are allowed:")
 		for(var/spawnpoint in GLOB.using_map.allowed_spawns)
-			log_unit_test("\t[spawnpoint] ([any2ref(spawnpoint)])")	
+			log_unit_test("\t[spawnpoint] ([any2ref(spawnpoint)])")
 		fail("Some of the entries in allowed_spawns have no spawnpoint turfs.")
 	else
 		pass("All entries in allowed_spawns have spawnpoints.")
@@ -302,12 +330,12 @@ datum/unit_test/ladder_check/start_test()
 /datum/unit_test/cryopod_comp_check/start_test()
 	var/pass = TRUE
 
-	for(var/obj/machinery/cryopod/C in GLOB.machines)
+	for(var/obj/machinery/cryopod/C in SSmachines.machinery)
 		if(!C.control_computer)
 			log_bad("[get_area(C)] lacks a cryopod control computer while holding a cryopod.")
 			pass = FALSE
 
-	for(var/obj/machinery/computer/cryopod/C in GLOB.machines)
+	for(var/obj/machinery/computer/cryopod/C in SSmachines.machinery)
 		if(!(locate(/obj/machinery/cryopod) in get_area(C)))
 			log_bad("[get_area(C)] lacks a cryopod while holding a control computer.")
 			pass = FALSE
@@ -431,9 +459,6 @@ datum/unit_test/ladder_check/start_test()
 			return TRUE
 	return FALSE
 
-
-/obj/machinery/atmospherics/pipe/simple
-
 //=======================================================================================
 
 /datum/unit_test/simple_pipes_shall_not_face_north_or_west // The init code is worthless and cannot handle it
@@ -441,7 +466,7 @@ datum/unit_test/ladder_check/start_test()
 
 /datum/unit_test/simple_pipes_shall_not_face_north_or_west/start_test()
 	var/failures = 0
-	for(var/obj/machinery/atmospherics/pipe/simple/pipe in GLOB.machines)
+	for(var/obj/machinery/atmospherics/pipe/simple/pipe in SSmachines.machinery)
 		if(!istype(pipe, /obj/machinery/atmospherics/pipe/simple/hidden) && !istype(pipe, /obj/machinery/atmospherics/pipe/simple/visible))
 			continue
 		if(pipe.dir == NORTH || pipe.dir == WEST)
@@ -452,6 +477,26 @@ datum/unit_test/ladder_check/start_test()
 		fail("[failures] simple pipe\s faced the wrong direction.")
 	else
 		pass("All simple pipes faced an appropriate direction.")
+	return 1
+
+//=======================================================================================
+
+/datum/unit_test/shutoff_valves_shall_connect_to_two_different_pipe_networks
+	name = "MAP: Shutoff valves shall connect to two different pipe networks"
+
+/datum/unit_test/shutoff_valves_shall_connect_to_two_different_pipe_networks/start_test()
+	var/failures = 0
+	for(var/obj/machinery/atmospherics/valve/shutoff/SV in SSmachines.machinery)
+		SV.close()
+	for(var/obj/machinery/atmospherics/valve/shutoff/SV in SSmachines.machinery)
+		if(SV.network_node1 == SV.network_node2)
+			log_bad("Following shutoff valve does not connect to two different pipe networks: [log_info_line(SV)]")
+			failures++
+
+	if(failures)
+		fail("[failures] shutoff valves did not connect to two different pipe networks.")
+	else
+		pass("All shutoff valves connect to two different pipe networks.")
 	return 1
 
 

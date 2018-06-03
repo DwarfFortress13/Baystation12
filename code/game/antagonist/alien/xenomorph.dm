@@ -1,11 +1,11 @@
-var/datum/antagonist/xenos/xenomorphs
+GLOBAL_DATUM_INIT(xenomorphs, /datum/antagonist/xenos, new)
 
 /datum/antagonist/xenos
 	id = MODE_XENOMORPH
 	role_text = "Xenophage"
 	role_text_plural = "Xenophages"
 	mob_path = /mob/living/carbon/alien/larva
-	flags = ANTAG_OVERRIDE_MOB | ANTAG_RANDSPAWN | ANTAG_OVERRIDE_JOB | ANTAG_VOTABLE
+	flags = ANTAG_OVERRIDE_MOB | ANTAG_RANDSPAWN | ANTAG_OVERRIDE_JOB
 	welcome_text = "Hiss! You are a larval alien. Hide and bide your time until you are ready to evolve."
 	antaghud_indicator = "hudalien"
 	antag_indicator = "hudalien"
@@ -24,19 +24,17 @@ var/datum/antagonist/xenos/xenomorphs
 	spawn_announcement_title = "Lifesign Alert"
 	spawn_announcement_delay = 5000
 
-/datum/antagonist/xenos/New(var/no_reference)
+/datum/antagonist/xenos/Initialize()
 	spawn_announcement = replacetext(GLOB.using_map.unidentified_lifesigns_message, "%STATION_NAME%", station_name())
 	spawn_announcement_sound = GLOB.using_map.xenomorph_spawn_sound
 	..()
-	if(!no_reference)
-		xenomorphs = src
 
 /datum/antagonist/xenos/attempt_random_spawn()
 	if(config.aliens_allowed) ..()
 
 /datum/antagonist/xenos/proc/get_vents()
 	var/list/vents = list()
-	for(var/obj/machinery/atmospherics/unary/vent_pump/temp_vent in GLOB.machines)
+	for(var/obj/machinery/atmospherics/unary/vent_pump/temp_vent in SSmachines.machinery)
 		if(!temp_vent.welded && temp_vent.network && (temp_vent.loc.z in GLOB.using_map.station_levels))
 			if(temp_vent.network.normal_members.len > 50)
 				vents += temp_vent

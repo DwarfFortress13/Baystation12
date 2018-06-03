@@ -5,17 +5,6 @@ GLOBAL_LIST_INIT(robot_module_types, list(
 	"Research"
 )) // This shouldn't be a static list. Am I the only one who cares about extendability around here?
 
-GLOBAL_LIST_INIT(station_departments, list(
-	"Command", "Medical", "Engineering",
-	"Science", "Security", "Cargo",
-	"Civilian")) // See above
-
-//Uplink spawn loc
-#define UPLINK_PDA   "PDA"
-#define UPLINK_RADIO "Headset"
-#define UPLINK_NONE  "None"
-GLOBAL_LIST_INIT(uplink_locations, list(UPLINK_PDA, UPLINK_RADIO, UPLINK_NONE))
-
 // Noises made when hit while typing.
 GLOBAL_LIST_INIT(hit_appends, list("-OOF", "-ACK", "-UGH", "-HRNK", "-HURGH", "-GLORF"))
 
@@ -90,3 +79,34 @@ GLOBAL_LIST_INIT(numbers_as_words, list("One", "Two", "Three", "Four",
 	"Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve",
 	"Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen",
 	"Eighteen", "Nineteen"))
+
+GLOBAL_LIST_INIT(music_tracks, list(
+	"Beyond" = /music_track/ambispace,
+	"Clouds of Fire" = /music_track/clouds_of_fire,
+	"Stage Three" = /music_track/dilbert,
+	"Asteroids" = /music_track/df_theme,
+	"Floating" = /music_track/floating,
+	"Endless Space" = /music_track/endless_space,
+	"Fleet Party Theme" = /music_track/one_loop,
+	"Scratch" = /music_track/level3_mod,
+	"Absconditus" = /music_track/absconditus,
+	"lasers rip apart the bulkhead" = /music_track/lasers,
+	"Maschine Klash" = /music_track/digit_one,
+	"Comet Halley" = /music_track/comet_haley,
+	"Please Come Back Any Time" = /music_track/elevator,
+	"Human" = /music_track/human,
+	"Memories of Lysendraa" = /music_track/lysendraa,
+	"Marhaba" = /music_track/marhaba,
+	"Space Oddity" = /music_track/space_oddity,
+	"THUNDERDOME" = /music_track/thunderdome,
+	"Torch: A Light in the Darkness" = /music_track/torch,
+	"Treacherous Voyage" = /music_track/treacherous_voyage,
+	"Wake" = /music_track/wake
+))
+
+/proc/setup_music_tracks(var/list/tracks)
+	. = list()
+	var/track_list = LAZYLEN(tracks) ? tracks : GLOB.music_tracks
+	for(var/track_name in track_list)
+		var/track_path = track_list[track_name]
+		. += new/datum/track(track_name, track_path)

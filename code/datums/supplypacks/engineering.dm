@@ -75,13 +75,14 @@
 	name = "Emitter crate"
 	contains = list(/obj/machinery/power/emitter = 2)
 	cost = 10
-	containertype = /obj/structure/closet/crate/secure
+	containertype = /obj/structure/closet/crate/secure/large
 	containername = "\improper Emitter crate"
-	access = access_ce
+	access = access_engine_equip
 
 /decl/hierarchy/supply_pack/engineering/field_gen
 	name = "Field Generator crate"
 	contains = list(/obj/machinery/field_generator = 2)
+	containertype = /obj/structure/closet/crate/large
 	cost = 10
 	containername = "\improper Field Generator crate"
 	access = access_ce
@@ -90,17 +91,17 @@
 	name = "Singularity Generator crate"
 	contains = list(/obj/machinery/the_singularitygen)
 	cost = 10
-	containertype = /obj/structure/closet/crate/secure
+	containertype = /obj/structure/closet/crate/secure/large
 	containername = "\improper Singularity Generator crate"
 	access = access_ce
 
 /decl/hierarchy/supply_pack/engineering/collector
 	name = "Collector crate"
-	contains = list(/obj/machinery/power/rad_collector = 3)
-	cost = 10
-	containertype = /obj/structure/closet/crate/secure
+	contains = list(/obj/machinery/power/rad_collector = 2)
+	cost = 6
+	containertype = /obj/structure/closet/crate/secure/large
 	containername = "\improper Collector crate"
-	access = access_ce
+	access = access_engine_equip
 
 /decl/hierarchy/supply_pack/engineering/PA
 	name = "Particle Accelerator crate"
@@ -112,7 +113,7 @@
 					/obj/structure/particle_accelerator/power_box,
 					/obj/structure/particle_accelerator/end_cap)
 	cost = 40
-	containertype = /obj/structure/closet/crate/secure
+	containertype = /obj/structure/largecrate
 	containername = "\improper Particle Accelerator crate"
 	access = access_ce
 
@@ -144,7 +145,7 @@
 	cost = 75
 	containertype = /obj/structure/closet/crate/secure/large
 	containername = "\improper Mk1 TEG crate"
-	access = access_engine
+	access = access_engine_equip
 
 /decl/hierarchy/supply_pack/engineering/circulator
 	name = "Binary atmospheric circulator"
@@ -152,7 +153,7 @@
 	cost = 60
 	containertype = /obj/structure/closet/crate/secure/large
 	containername = "\improper Atmospheric circulator crate"
-	access = access_engine
+	access = access_atmospherics
 
 /decl/hierarchy/supply_pack/engineering/air_dispenser
 	name = "Pipe Dispenser"
@@ -176,13 +177,13 @@
 	cost = 50
 	containertype = /obj/structure/closet/crate/secure
 	containername = "\improper shield generator construction kit crate"
-	access = access_ce
+	access = access_engine
 
 /decl/hierarchy/supply_pack/engineering/smbig
 	name = "Supermatter Core"
 	contains = list(/obj/machinery/power/supermatter)
 	cost = 150
-	containertype = /obj/structure/closet/crate/secure/phoron
+	containertype = /obj/structure/closet/crate/secure/large/phoron
 	containername = "\improper Supermatter crate (CAUTION)"
 	access = access_ce
 
@@ -242,3 +243,13 @@
 	cost = 20
 	containertype = /obj/structure/closet/firecloset
 	containername = "\improper fire-safety closet"
+
+/decl/hierarchy/supply_pack/engineering/voidsuit
+	name = "Engineering voidsuit"
+	contains = list(/obj/item/clothing/suit/space/void/engineering/alt,
+					/obj/item/clothing/head/helmet/space/void/engineering/alt,
+					/obj/item/clothing/shoes/magboots)
+	cost = 120
+	containername = "\improper Engineering voidsuit crate"
+	containertype = /obj/structure/closet/crate/secure/large
+	access = access_engine

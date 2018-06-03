@@ -1,12 +1,14 @@
-var/list/spawntypes = list()
+GLOBAL_VAR(spawntypes)
 
-/proc/populate_spawn_points()
-	spawntypes = list()
-	for(var/type in typesof(/datum/spawnpoint)-/datum/spawnpoint)
-		var/datum/spawnpoint/S = type
-		var/display_name = initial(S.display_name)
-		if((display_name in GLOB.using_map.allowed_spawns) || initial(S.always_visible))
-			spawntypes[display_name] = new S
+/proc/spawntypes()
+	if(!GLOB.spawntypes)
+		GLOB.spawntypes = list()
+		for(var/type in typesof(/datum/spawnpoint)-/datum/spawnpoint)
+			var/datum/spawnpoint/S = type
+			var/display_name = initial(S.display_name)
+			if((display_name in GLOB.using_map.allowed_spawns) || initial(S.always_visible))
+				GLOB.spawntypes[display_name] = new S
+	return GLOB.spawntypes
 
 /datum/spawnpoint
 	var/msg		  //Message to display on the arrivals computer.
@@ -54,7 +56,7 @@ var/list/spawntypes = list()
 /datum/spawnpoint/cryo
 	display_name = "Cryogenic Storage"
 	msg = "has completed cryogenic revival"
-	disallow_job = list("Cyborg")
+	disallow_job = list("Robot")
 
 /datum/spawnpoint/cryo/New()
 	..()
@@ -63,7 +65,7 @@ var/list/spawntypes = list()
 /datum/spawnpoint/cyborg
 	display_name = "Cyborg Storage"
 	msg = "has been activated from storage"
-	restrict_job = list("Cyborg")
+	restrict_job = list("Robot")
 
 /datum/spawnpoint/cyborg/New()
 	..()

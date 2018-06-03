@@ -33,6 +33,7 @@
 	var/response_disarm = "tries to disarm"
 	var/response_harm   = "tries to hurt"
 	var/harm_intent_damage = 3
+	var/can_escape = 0 // 'smart' simple animals such as human enemies, or things small, big, sharp or strong enough to power out of a net
 
 	//Temperature effect
 	var/minbodytemp = 250
@@ -42,14 +43,8 @@
 	var/fire_alert = 0
 
 	//Atmos effect - Yes, you can make creatures that require phoron or co2 to survive. N2O is a trace gas and handled separately, hence why it isn't here. It'd be hard to add it. Hard and me don't mix (Yes, yes make all the dick jokes you want with that.) - Errorage
-	var/min_oxy = 5
-	var/max_oxy = 0					//Leaving something at 0 means it's off - has no maximum
-	var/min_tox = 0
-	var/max_tox = 1
-	var/min_co2 = 0
-	var/max_co2 = 5
-	var/min_n2 = 0
-	var/max_n2 = 0
+	var/min_gas = list("oxygen" = 5)
+	var/max_gas = list("phoron" = 1, "carbon_dioxide" = 5)
 	var/unsuitable_atoms_damage = 2	//This damage is taken when atmos doesn't fit all the requirements above
 	var/speed = 0 //LETS SEE IF I CAN SET SPEEDS FOR SIMPLE MOBS WITHOUT DESTROYING EVERYTHING. Higher speed is slower, negative speed is faster
 
@@ -66,9 +61,13 @@
 	var/supernatural = 0
 	var/purge = 0
 
+	// contained in a cage
+	var/in_stasis = 0
+
 /mob/living/simple_animal/Life()
 	..()
-
+	if(!living_observers_present(GetConnectedZlevels(z)))
+		return
 	//Health
 	if(stat == DEAD)
 		if(health > 0)
@@ -77,7 +76,6 @@
 			set_stat(CONSCIOUS)
 			set_density(1)
 		return 0
-
 
 	if(health <= 0)
 		death()
@@ -90,6 +88,15 @@
 	handle_weakened()
 	handle_paralysed()
 	handle_supernatural()
+
+	if(buckled && can_escape)
+		if(istype(buckled, /obj/effect/energy_net))
+			var/obj/effect/energy_net/Net = buckled
+			Net.escape_net(src)
+		else if(prob(50))
+			escape(src, buckled)
+		else if(prob(50))
+			visible_message("<span class='warning'>\The [src] struggles against \the [buckled]!</span>")
 
 	//Movement
 	if(!client && !stop_automated_movement && wander && !anchored)
@@ -120,44 +127,27 @@
 				if("emote_see")
 					visible_emote("[pick(emote_see)].")
 
+	if(in_stasis)
+		return 1 // return early to skip atmos checks
+
 	//Atmos
 	var/atmos_suitable = 1
 
-	var/atom/A = src.loc
+	var/atom/A = loc
+	if(!loc)
+		return 1
+	var/datum/gas_mixture/environment = A.return_air()
 
-	if(istype(A,/turf))
-		var/turf/T = A
-
-		var/datum/gas_mixture/Environment = T.return_air()
-
-		if(Environment)
-
-			if( abs(Environment.temperature - bodytemperature) > 40 )
-				bodytemperature += ((Environment.temperature - bodytemperature) / 5)
-
-			if(min_oxy)
-				if(Environment.gas["oxygen"] < min_oxy)
+	if(!(SPACERES in mutations) && environment)
+		if( abs(environment.temperature - bodytemperature) > 40 )
+			bodytemperature += (environment.temperature - bodytemperature) / 5
+		if(min_gas)
+			for(var/gas in min_gas)
+				if(environment.gas[gas] < min_gas[gas])
 					atmos_suitable = 0
-			if(max_oxy)
-				if(Environment.gas["oxygen"] > max_oxy)
-					atmos_suitable = 0
-			if(min_tox)
-				if(Environment.gas["phoron"] < min_tox)
-					atmos_suitable = 0
-			if(max_tox)
-				if(Environment.gas["phoron"] > max_tox)
-					atmos_suitable = 0
-			if(min_n2)
-				if(Environment.gas["nitrogen"] < min_n2)
-					atmos_suitable = 0
-			if(max_n2)
-				if(Environment.gas["nitrogen"] > max_n2)
-					atmos_suitable = 0
-			if(min_co2)
-				if(Environment.gas["carbon_dioxide"] < min_co2)
-					atmos_suitable = 0
-			if(max_co2)
-				if(Environment.gas["carbon_dioxide"] > max_co2)
+		if(max_gas)
+			for(var/gas in max_gas)
+				if(environment.gas[gas] > max_gas[gas])
 					atmos_suitable = 0
 
 	//Atmos effect
@@ -173,6 +163,10 @@
 	if(!atmos_suitable)
 		adjustBruteLoss(unsuitable_atoms_damage)
 	return 1
+
+/mob/living/simple_animal/proc/escape(mob/living/M, obj/O)
+	O.unbuckle_mob(M)
+	visible_message("<span class='danger'>\The [M] escapes from \the [O]!</span>")
 
 /mob/living/simple_animal/proc/handle_supernatural()
 	if(purge)
@@ -191,7 +185,12 @@
 	if(!Proj || Proj.nodamage)
 		return
 
-	adjustBruteLoss(Proj.damage)
+	var/damage = Proj.damage
+	if(Proj.damtype == STUN)
+		damage = (Proj.damage / 8)
+
+	adjustBruteLoss(damage)
+	Proj.on_hit(src)
 	return 0
 
 /mob/living/simple_animal/attack_hand(mob/living/carbon/human/M as mob)
@@ -201,16 +200,16 @@
 
 		if(I_HELP)
 			if (health > 0)
-				M.visible_message("<span class='notice'>[M] [response_help] \the [src]</span>")
+				M.visible_message("<span class='notice'>[M] [response_help] \the [src].</span>")
 
 		if(I_DISARM)
-			M.visible_message("<span class='notice'>[M] [response_disarm] \the [src]</span>")
+			M.visible_message("<span class='notice'>[M] [response_disarm] \the [src].</span>")
 			M.do_attack_animation(src)
 			//TODO: Push the mob away or something
 
 		if(I_HURT)
 			adjustBruteLoss(harm_intent_damage)
-			M.visible_message("<span class='warning'>[M] [response_harm] \the [src]</span>")
+			M.visible_message("<span class='warning'>[M] [response_harm] \the [src]!</span>")
 			M.do_attack_animation(src)
 
 	return
@@ -245,15 +244,17 @@
 
 /mob/living/simple_animal/hit_with_weapon(obj/item/O, mob/living/user, var/effective_force, var/hit_zone)
 
-	visible_message("<span class='danger'>\The [src] has been attacked with \the [O] by [user].</span>")
+	visible_message("<span class='danger'>\The [src] has been attacked with \the [O] by [user]!</span>")
 
 	if(O.force <= resistance)
-		to_chat(user, "<span class='danger'>This weapon is ineffective, it does no damage.</span>")
+		to_chat(user, "<span class='danger'>This weapon is ineffective; it does no damage.</span>")
 		return 2
 
 	var/damage = O.force
 	if (O.damtype == PAIN)
 		damage = 0
+	if (O.damtype == STUN)
+		damage = (O.force / 8)
 	if(supernatural && istype(O,/obj/item/weapon/nullrod))
 		damage *= 2
 		purge = 3
@@ -280,6 +281,7 @@
 
 /mob/living/simple_animal/death(gibbed, deathmessage = "dies!", show_dead_message)
 	icon_state = icon_dead
+	update_icon()
 	density = 0
 	adjustBruteLoss(maxHealth) //Make sure dey dead.
 	walk_to(src,0)
@@ -353,7 +355,7 @@
 	if(meat_type && actual_meat_amount>0 && (stat == DEAD))
 		for(var/i=0;i<actual_meat_amount;i++)
 			var/obj/item/meat = new meat_type(get_turf(src))
-			meat.name = "[src.name] [meat.name]"
+			meat.SetName("[src.name] [meat.name]")
 		if(issmall(src))
 			user.visible_message("<span class='danger'>[user] chops up \the [src]!</span>")
 			new/obj/effect/decal/cleanable/blood/splatter(get_turf(src))

@@ -1,5 +1,4 @@
 /obj/item/weapon/card/id/syndicate
-	name = "agent card"
 	icon_state = "syndicate"
 	assignment = "Agent"
 	origin_tech = list(TECH_ILLEGAL = 3)
@@ -48,6 +47,10 @@
 	entries[++entries.len] = list("name" = "Age", 				"value" = age)
 	entries[++entries.len] = list("name" = "Appearance",		"value" = "Set")
 	entries[++entries.len] = list("name" = "Assignment",		"value" = assignment)
+	if(GLOB.using_map.flags & MAP_HAS_BRANCH)
+		entries[++entries.len] = list("name" = "Branch",		"value" = military_branch ? military_branch.name : "N/A")
+	if(military_branch && (GLOB.using_map.flags & MAP_HAS_RANK))
+		entries[++entries.len] = list("name" = "Rank",			"value" = military_rank ? military_rank.name : "N/A")
 	entries[++entries.len] = list("name" = "Blood Type",		"value" = blood_type)
 	entries[++entries.len] = list("name" = "DNA Hash", 			"value" = dna_hash)
 	entries[++entries.len] = list("name" = "Fingerprint Hash",	"value" = fingerprint_hash)
@@ -115,7 +118,6 @@
 				if(!isnull(new_job) && CanUseTopic(user, state))
 					src.assignment = new_job
 					to_chat(user, "<span class='notice'>Occupation changed to '[new_job]'.</span>")
-					update_name()
 					. = 1
 			if("Blood Type")
 				var/default = blood_type
@@ -154,7 +156,6 @@
 				var/new_name = sanitizeName(input(user,"What name would you like to put on this card?","Agent Card Name", registered_name) as null|text, allow_numbers=TRUE)
 				if(!isnull(new_name) && CanUseTopic(user, state))
 					src.registered_name = new_name
-					update_name()
 					to_chat(user, "<span class='notice'>Name changed to '[new_name]'.</span>")
 					. = 1
 			if("Photo")
@@ -177,11 +178,25 @@
 					electronic_warfare = initial(electronic_warfare)
 					fingerprint_hash = initial(fingerprint_hash)
 					icon_state = initial(icon_state)
-					name = initial(name)
+					SetName(initial(name))
 					registered_name = initial(registered_name)
 					unset_registered_user()
 					sex = initial(sex)
+					military_branch = initial(military_branch)
+					military_rank = initial(military_rank)
 					to_chat(user, "<span class='notice'>All information has been deleted from \the [src].</span>")
+					. = 1
+			if("Branch")
+				var/new_branch = sanitize(input(user,"What branch of service would you like to put on this card?","Agent Card Branch") as null|anything in mil_branches.spawn_branches())
+				if(!isnull(new_branch) && CanUseTopic(user, state))
+					src.military_branch =  mil_branches.spawn_branches()[new_branch]
+					to_chat(user, "<span class='notice'>Branch changed to '[military_branch.name]'.</span>")
+					. = 1
+			if("Rank")
+				var/new_rank = sanitize(input(user,"What rank would you like to put on this card?","Agent Card Rank") as null|anything in mil_branches.spawn_ranks(military_branch.name))
+				if(!isnull(new_rank) && CanUseTopic(user, state))
+					src.military_rank = mil_branches.spawn_ranks(military_branch.name)[new_rank]
+					to_chat(user, "<span class='notice'>Rank changed to '[military_rank.name]'.</span>")
 					. = 1
 
 	// Always update the UI, or buttons will spin indefinitely

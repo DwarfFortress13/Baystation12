@@ -10,7 +10,7 @@
 	. = ..()
 	if(!.)
 		return
-	for(var/mob/living/carbon/human/H in GLOB.mob_list)
+	for(var/mob/living/carbon/human/H in SSmobs.mob_list)
 		var/turf/T = get_turf(H)
 		var/security = 0
 		if((T && (T in GLOB.using_map.admin_levels)) || GLOB.prisonwarped.Find(H))
@@ -18,7 +18,7 @@
 			continue
 		H.Paralyse(5)
 		if(H.wear_id)
-			var/obj/item/weapon/card/id/id = H.get_idcard()
+			var/obj/item/weapon/card/id/id = H.GetIdCard()
 			for(var/A in id.access)
 				if(A == access_security)
 					security++

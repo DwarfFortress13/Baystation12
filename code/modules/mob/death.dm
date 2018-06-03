@@ -5,7 +5,7 @@
 	transforming = 1
 	canmove = 0
 	icon = null
-	invisibility = 101
+	set_invisibility(101)
 	update_canmove()
 	remove_from_dead_mob_list()
 
@@ -18,9 +18,11 @@
 	flick(anim, animation)
 	if(do_gibs) gibs(loc, dna)
 
-	spawn(15)
-		if(animation)	qdel(animation)
-		if(src)			qdel(src)
+	addtimer(CALLBACK(src, .proc/check_delete, animation), 15)
+
+/mob/proc/check_delete(var/atom/movable/overlay/animation)
+	if(animation)	qdel(animation)
+	if(src)			qdel(src)
 
 //This is the proc for turning a mob into ash. Mostly a copy of gib code (above).
 //Originally created for wizard disintegrate. I've removed the virus code since it's irrelevant here.
@@ -31,7 +33,7 @@
 	transforming = 1
 	canmove = 0
 	icon = null
-	invisibility = 101
+	set_invisibility(101)
 
 	animation = new(loc)
 	animation.icon_state = "blank"
@@ -42,9 +44,7 @@
 	new remains(loc)
 
 	remove_from_dead_mob_list()
-	spawn(15)
-		if(animation)	qdel(animation)
-		if(src)			qdel(src)
+	addtimer(CALLBACK(src, .proc/check_delete, animation), 15)
 
 
 /mob/proc/death(gibbed,deathmessage="seizes up and falls limp...", show_dead_message = "You have died.")
@@ -85,7 +85,7 @@
 	if(mind) mind.store_memory("Time of death: [stationtime2text()]", 0)
 	switch_from_living_to_dead_mob_list()
 
-	updateicon()
+	update_icon()
 
 	if(ticker && ticker.mode)
 		ticker.mode.check_win()
